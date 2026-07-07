@@ -1,0 +1,69 @@
+{
+  "created_at_utc": "20260707T030613Z",
+  "evaluation_type": "sampled_decode_ppl",
+  "model_id": "meta-llama/Llama-3.1-8B",
+  "dataset_name": "Salesforce/wikitext",
+  "dataset_config": "wikitext-2-raw-v1",
+  "dataset_split": "test",
+  "context_length": 16384,
+  "num_blocks": 1,
+  "query_positions": [
+    4095,
+    8191,
+    12287,
+    16383
+  ],
+  "methods": [
+    "fier",
+    "bit2_qk"
+  ],
+  "retrieval": {
+    "budget": 512,
+    "loki_rank": 64,
+    "pqsift_axes": 4,
+    "pqsift_keep_ratio": 0.75,
+    "quest_page_size": 16,
+    "fier_group_size": 32,
+    "bit2_group_size": 64,
+    "full_layers": [
+      0,
+      1
+    ],
+    "measure_topk_recall": false
+  },
+  "pqsift_axes_sweep": null,
+  "pqsift_r_sweep": null,
+  "budget_sweep": [
+    1024,
+    2048
+  ],
+  "group_size_sweep": [
+    32,
+    64
+  ],
+  "evaluated_variants": [
+    "fier_g32_b1024",
+    "fier_g32_b2048",
+    "fier_g64_b1024",
+    "fier_g64_b2048",
+    "bit2_qk_g32_b1024",
+    "bit2_qk_g32_b2048",
+    "bit2_qk_g64_b1024",
+    "bit2_qk_g64_b2048"
+  ],
+  "pca_basis": null,
+  "pca_metadata": null,
+  "bit2_range_mode": "query_minmax_half__keys_group_channel_minmax_half",
+  "bit2_score_mode": "sign_xnor_weight_1_plus_mag_or_plus_mag_and",
+  "bit2_storage": "two_uint8_packed_bitplanes_2_bits_per_scalar",
+  "bit2_popcount": "uint8_lookup_table_reference",
+  "dtype": "bfloat16",
+  "attention_implementation_for_dense_prefix": "sdpa",
+  "component_timing": {
+    "candidate_search_ms": "select_candidates across all layers and heads",
+    "candidate_search_ops_proxy": "rough threshold/quantize/bitops-or-FIER-score/topk operation proxy",
+    "selected_attention_ms": "exact_attention across all layers and heads",
+    "cuda_timer": "torch.cuda.Event"
+  },
+  "torch_version": "2.4.1+cu124"
+}

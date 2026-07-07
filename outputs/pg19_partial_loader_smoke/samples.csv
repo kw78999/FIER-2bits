@@ -1,0 +1,2 @@
+block_idx,step,context_tokens,method,nll,candidate_ratio,prefix_ms_shared,prepack_ms,decode_ms,candidate_search_ms,cache_update_ms,selected_attention_ms,candidate_search_ops_proxy,topk_recall,budget,group_size
+0,0,64,full,7.829831123352051,1.0,317.79236532747746,0.0,352.0011492073536,29.42691196128726,1.5304870903491974,172.34729655086994,0.0,,16,0

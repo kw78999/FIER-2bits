@@ -1,0 +1,487 @@
+from __future__ import annotations
+
+import argparse
+import csv
+import json
+import math
+import os
+import random
+import time
+import urllib.request
+from dataclasses import replace
+from datetime import datetime, timezone
+from pathlib import Path
+from typing import Any
+
+import torch
+import torch.nn.functional as F
+
+from sparse_ppl import (
+    EvaluationVariant,
+    LlamaSparseDecoder,
+    PPLResult,
+    RetrievalConfig,
+    _safe_perplexity,
+    parse_int_tuple,
+)
+
+
+def parse_args() -> argparse.Namespace:
+    parser = argparse.ArgumentParser(
+        description="Prepacked FIER/bit2 continuous-decode benchmark on PG19 or LongBench text."
+    )
+    parser.add_argument("--model", default="meta-llama/Llama-3.1-8B")
+    parser.add_argument("--benchmark", choices=("pg19_ppl", "longbench_ppl"), default="pg19_ppl")
+    parser.add_argument("--context-length", type=int, default=32768)
+    parser.add_argument("--generate-tokens", type=int, default=128)
+    parser.add_argument("--num-blocks", type=int, default=1)
+    parser.add_argument("--methods", default="fier,bit2_qk")
+    parser.add_argument("--budget-sweep", default="1024,2048")
+    parser.add_argument("--group-size-sweep", default="32,64")
+    parser.add_argument("--full-layers", default="0,1")
+    parser.add_argument("--measure-topk-recall", action="store_true", default=True)
+    parser.add_argument("--dtype", choices=("bfloat16", "float16", "float32"), default="bfloat16")
+    parser.add_argument("--device-map", default="auto")
+    parser.add_argument("--attention", choices=("sdpa", "eager", "flash_attention_2"), default="sdpa")
+    parser.add_argument("--seed", type=int, default=42)
+    parser.add_argument("--output-dir", default=None)
+    parser.add_argument("--trust-remote-code", action="store_true")
+    parser.add_argument("--dataset-trust-remote-code", action="store_true")
+    parser.add_argument("--dry-run", action="store_true")
+    parser.add_argument("--dataset-name", default="deepmind/pg19")
+    parser.add_argument("--dataset-config", default=None)
+    parser.add_argument("--dataset-split", default="test")
+    parser.add_argument("--pg19-loader", choices=("partial", "hf"), default="partial")
+    parser.add_argument("--pg19-cache-dir", default="/workspace/data/pg19_partial")
+    parser.add_argument("--pg19-max-books", type=int, default=64)
+    parser.add_argument("--text-file", default=None, help="Local plain text file used instead of datasets.load_dataset.")
+    parser.add_argument("--longbench-subset", default="qasper")
+    parser.add_argument("--max-longbench-samples", type=int, default=1)
+    return parser.parse_args()
+
+
+def parse_methods(value: str) -> tuple[str, ...]:
+    methods = tuple(item.strip() for item in value.split(",") if item.strip())
+    unknown = [m for m in methods if m not in {"full", "fier", "bit2_qk"}]
+    if unknown:
+        raise ValueError(f"This runner supports full/FIER/bit2, got {unknown}")
+    return methods
+
+
+def load_model_and_tokenizer(args: argparse.Namespace):
+    try:
+        from transformers import AutoModelForCausalLM, AutoTokenizer
+    except ModuleNotFoundError as exc:
+        raise SystemExit("Install transformers/accelerate first") from exc
+
+    token = os.environ.get("HF_TOKEN") or None
+    dtype = {"bfloat16": torch.bfloat16, "float16": torch.float16, "float32": torch.float32}[args.dtype]
+    tokenizer = AutoTokenizer.from_pretrained(
+        args.model, token=token, use_fast=True, trust_remote_code=args.trust_remote_code
+    )
+    if tokenizer.pad_token_id is None:
+        tokenizer.pad_token = tokenizer.eos_token
+    model = AutoModelForCausalLM.from_pretrained(
+        args.model,
+        token=token,
+        torch_dtype=dtype,
+        device_map=args.device_map,
+        low_cpu_mem_usage=True,
+        attn_implementation=args.attention,
+        trust_remote_code=args.trust_remote_code,
+    )
+    model.eval()
+    model.config.use_cache = True
+    return model, tokenizer
+
+
+def _row_text(row: dict[str, Any]) -> str:
+    for key in ("text", "context", "input", "document", "prompt"):
+        if key in row and str(row[key]).strip():
+            return str(row[key])
+    pieces = []
+    for key, value in row.items():
+        if isinstance(value, str):
+            pieces.append(value)
+    return "\n".join(pieces)
+
+
+def build_pg19_partial_blocks(tokenizer: Any, args: argparse.Namespace) -> list[torch.Tensor]:
+    try:
+        from huggingface_hub import hf_hub_download
+    except ModuleNotFoundError as exc:
+        raise RuntimeError("huggingface_hub is required for PG19 partial loading") from exc
+
+    if args.dataset_split not in {"train", "validation", "test"}:
+        raise ValueError("PG19 partial loader expects train/validation/test split")
+    split_list = hf_hub_download(
+        repo_id="deepmind/pg19",
+        repo_type="dataset",
+        filename=f"data/{args.dataset_split}_files.txt",
+    )
+    file_names = [line.strip() for line in Path(split_list).read_text().splitlines() if line.strip()]
+    required = args.num_blocks * (args.context_length + args.generate_tokens)
+    cache_dir = Path(args.pg19_cache_dir).expanduser().resolve() / args.dataset_split
+    cache_dir.mkdir(parents=True, exist_ok=True)
+    stream: list[int] = []
+    eos = tokenizer.eos_token_id
+    root = "https://storage.googleapis.com/deepmind-gutenberg/"
+    used_books = 0
+    for name in sorted(file_names):
+        if used_books >= args.pg19_max_books:
+            break
+        local = cache_dir / Path(name).name
+        if not local.exists():
+            urllib.request.urlretrieve(root + name, local)
+        text = local.read_text(encoding="utf-8", errors="ignore")
+        if text.strip():
+            stream.extend(int(x) for x in tokenizer(text, add_special_tokens=False)["input_ids"])
+            if eos is not None:
+                stream.append(int(eos))
+        used_books += 1
+        if len(stream) >= required:
+            break
+    if len(stream) < required:
+        raise RuntimeError(
+            f"PG19 partial loader produced {len(stream)} tokens from {used_books} books; "
+            f"need {required}. Increase --pg19-max-books."
+        )
+    block_size = args.context_length + args.generate_tokens
+    print(
+        f"PG19 partial loader: used_books={used_books} tokens={len(stream)} "
+        f"required={required} cache_dir={cache_dir}",
+        flush=True,
+    )
+    return [
+        torch.tensor(stream[i * block_size : (i + 1) * block_size], dtype=torch.long)
+        for i in range(args.num_blocks)
+    ]
+
+
+def build_text_file_blocks(tokenizer: Any, args: argparse.Namespace) -> list[torch.Tensor]:
+    path = Path(args.text_file).expanduser().resolve()
+    text = path.read_text(errors="ignore")
+    ids = tokenizer(text, add_special_tokens=False)["input_ids"]
+    eos = tokenizer.eos_token_id
+    if eos is not None:
+        ids.append(int(eos))
+    required = args.num_blocks * (args.context_length + args.generate_tokens)
+    if len(ids) < required:
+        repeats = math.ceil(required / max(1, len(ids)))
+        ids = (ids * repeats)[:required]
+    block_size = args.context_length + args.generate_tokens
+    return [
+        torch.tensor(ids[i * block_size : (i + 1) * block_size], dtype=torch.long)
+        for i in range(args.num_blocks)
+    ]
+
+
+def build_pg19_blocks(tokenizer: Any, args: argparse.Namespace) -> list[torch.Tensor]:
+    from datasets import load_dataset
+
+    kwargs = {"split": args.dataset_split, "trust_remote_code": args.dataset_trust_remote_code}
+    if args.dataset_config:
+        dataset = load_dataset(args.dataset_name, args.dataset_config, **kwargs)
+    else:
+        dataset = load_dataset(args.dataset_name, **kwargs)
+    required = args.num_blocks * (args.context_length + args.generate_tokens)
+    eos = tokenizer.eos_token_id
+    if eos is None:
+        raise ValueError("Tokenizer has no eos_token_id")
+    stream: list[int] = []
+    for row in dataset:
+        text = _row_text(dict(row))
+        if not text.strip():
+            continue
+        stream.extend(int(x) for x in tokenizer(text, add_special_tokens=False)["input_ids"])
+        stream.append(int(eos))
+        if len(stream) >= required:
+            break
+    if len(stream) < required:
+        raise RuntimeError(f"Dataset produced {len(stream)} tokens; need {required}")
+    block_size = args.context_length + args.generate_tokens
+    return [torch.tensor(stream[i * block_size : (i + 1) * block_size], dtype=torch.long) for i in range(args.num_blocks)]
+
+
+def build_longbench_blocks(tokenizer: Any, args: argparse.Namespace) -> list[torch.Tensor]:
+    from datasets import load_dataset
+
+    dataset = load_dataset(
+        "THUDM/LongBench",
+        args.longbench_subset,
+        split="test",
+        trust_remote_code=args.dataset_trust_remote_code,
+    )
+    blocks = []
+    needed = args.context_length + args.generate_tokens
+    eos = tokenizer.eos_token_id
+    for row in dataset.select(range(min(args.max_longbench_samples, len(dataset)))):
+        text = _row_text(dict(row))
+        ids = tokenizer(text, add_special_tokens=False)["input_ids"]
+        if len(ids) < needed:
+            ids = ids + [int(eos)] * (needed - len(ids))
+        blocks.append(torch.tensor(ids[:needed], dtype=torch.long))
+    if not blocks:
+        raise RuntimeError("No LongBench blocks built")
+    return blocks
+
+
+def make_variants(methods: tuple[str, ...], retrieval: RetrievalConfig, budgets: tuple[int, ...], groups: tuple[int, ...]) -> list[EvaluationVariant]:
+    variants = []
+    for method in methods:
+        if method == "full":
+            variants.append(EvaluationVariant("full", "full", retrieval))
+            continue
+        for group in groups:
+            for budget in budgets:
+                variant_retrieval = replace(
+                    retrieval,
+                    budget=budget,
+                    **({"fier_group_size": group} if method == "fier" else {"bit2_group_size": group}),
+                )
+                variants.append(EvaluationVariant(method, f"{method}_g{group}_b{budget}", variant_retrieval))
+    return variants
+
+
+def _sync(device: torch.device) -> None:
+    if device.type == "cuda":
+        torch.cuda.synchronize(device)
+
+
+def continuous_ppl(decoder: LlamaSparseDecoder, blocks: list[torch.Tensor], variants: list[EvaluationVariant], *, context_length: int, generate_tokens: int) -> PPLResult:
+    result = PPLResult()
+    for block_idx, block in enumerate(blocks):
+        if block.numel() < context_length + generate_tokens:
+            raise ValueError("block too short")
+        prefix_ids = block[: context_length - 1]
+        current_ids = block[context_length - 1 : context_length - 1 + generate_tokens]
+        target_ids = block[context_length : context_length + generate_tokens]
+
+        prefix_started = time.perf_counter()
+        base_past = decoder.build_prefix_cache(prefix_ids)
+        _sync(decoder.device)
+        prefix_ms = (time.perf_counter() - prefix_started) * 1000.0
+
+        for variant in variants:
+            decoder.retrieval = variant.retrieval
+            method = variant.method
+            group_size = 0 if method == "full" else (
+                variant.retrieval.fier_group_size if method == "fier" else variant.retrieval.bit2_group_size
+            )
+
+            if method == "full":
+                packed = None
+                prepack_ms = 0.0
+            else:
+                pack_started = time.perf_counter()
+                packed = decoder.build_packed_retrieval_caches(base_past, method=method, group_size=group_size)
+                _sync(decoder.device)
+                prepack_ms = (time.perf_counter() - pack_started) * 1000.0
+
+            past = base_past
+            total_nll = 0.0
+            total_decode_ms = 0.0
+            total_search_ms = 0.0
+            total_update_ms = 0.0
+            total_attention_ms = 0.0
+            total_ops = 0.0
+            total_ratio = 0.0
+            recall_sum = 0.0
+            recall_calls = 0
+
+            for step, (current_id, target_id) in enumerate(zip(current_ids, target_ids)):
+                _sync(decoder.device)
+                started = time.perf_counter()
+                logits, diagnostics, new_keys, new_values = decoder.decode(
+                    past,
+                    current_id,
+                    method=method,
+                    retrieval_caches=packed,
+                    return_new_kv=True,
+                )
+                _sync(decoder.device)
+                decode_ms = (time.perf_counter() - started) * 1000.0
+
+                update_started = time.perf_counter()
+                past = decoder.append_to_past_key_values(past, new_keys, new_values)
+                if packed is not None:
+                    decoder.append_to_packed_retrieval_caches(packed, new_keys)
+                _sync(decoder.device)
+                update_ms = (time.perf_counter() - update_started) * 1000.0
+                diagnostics.cache_update_ms = update_ms
+
+                target = target_id.to(decoder.device).view(1)
+                nll = F.cross_entropy(logits.view(1, -1), target).item()
+                total_nll += nll
+                total_decode_ms += decode_ms
+                total_search_ms += diagnostics.candidate_search_ms
+                total_update_ms += update_ms
+                total_attention_ms += diagnostics.selected_attention_ms
+                total_ops += diagnostics.candidate_search_ops
+                total_ratio += diagnostics.candidate_ratio
+                if diagnostics.topk_recall is not None:
+                    recall_sum += diagnostics.topk_recall
+                    recall_calls += 1
+
+                result.samples.append({
+                    "block_idx": block_idx,
+                    "step": step,
+                    "context_tokens": context_length + step,
+                    "method": variant.label,
+                    "nll": float(nll),
+                    "candidate_ratio": diagnostics.candidate_ratio,
+                    "prefix_ms_shared": prefix_ms,
+                    "prepack_ms": prepack_ms,
+                    "decode_ms": decode_ms,
+                    "candidate_search_ms": diagnostics.candidate_search_ms,
+                    "cache_update_ms": update_ms,
+                    "selected_attention_ms": diagnostics.selected_attention_ms,
+                    "candidate_search_ops_proxy": diagnostics.candidate_search_ops,
+                    "topk_recall": diagnostics.topk_recall,
+                    "budget": variant.retrieval.budget,
+                    "group_size": group_size,
+                })
+
+            mean_nll = total_nll / generate_tokens
+            print(
+                f"block={block_idx} method={variant.label} mean_nll={mean_nll:.5f} "
+                f"ppl={_safe_perplexity(mean_nll):.3f} prepack_ms={prepack_ms:.1f} "
+                f"search_ms/tok={total_search_ms/generate_tokens:.1f} "
+                f"update_ms/tok={total_update_ms/generate_tokens:.3f} "
+                f"decode_ms/tok={total_decode_ms/generate_tokens:.1f} "
+                f"topk_recall={(recall_sum/recall_calls if recall_calls else float('nan')):.4f}",
+                flush=True,
+            )
+            del past, packed
+            if decoder.device.type == "cuda":
+                torch.cuda.empty_cache()
+    return result
+
+
+def summarize_continuous(result: PPLResult) -> list[dict[str, Any]]:
+    rows = []
+    methods = sorted({str(r["method"]) for r in result.samples})
+    for method in methods:
+        rs = [r for r in result.samples if r["method"] == method]
+        mean_nll = sum(float(r["nll"]) for r in rs) / len(rs)
+        recall_values = [float(r["topk_recall"]) for r in rs if r.get("topk_recall") is not None]
+        rows.append({
+            "method": method,
+            "num_tokens": len(rs),
+            "mean_nll": mean_nll,
+            "perplexity": _safe_perplexity(mean_nll),
+            "mean_candidate_ratio": sum(float(r["candidate_ratio"]) for r in rs) / len(rs),
+            "mean_prepack_ms": sum(float(r["prepack_ms"]) for r in rs) / len(rs),
+            "mean_decode_ms_per_token": sum(float(r["decode_ms"]) for r in rs) / len(rs),
+            "mean_candidate_search_ms_per_token": sum(float(r["candidate_search_ms"]) for r in rs) / len(rs),
+            "mean_cache_update_ms_per_token": sum(float(r["cache_update_ms"]) for r in rs) / len(rs),
+            "mean_selected_attention_ms_per_token": sum(float(r["selected_attention_ms"]) for r in rs) / len(rs),
+            "mean_candidate_search_ops_proxy": sum(float(r["candidate_search_ops_proxy"]) for r in rs) / len(rs),
+            "mean_topk_recall": None if not recall_values else sum(recall_values) / len(recall_values),
+        })
+    return rows
+
+
+def write_outputs(output_dir: Path, result: PPLResult, metadata: dict[str, Any]) -> None:
+    output_dir.mkdir(parents=True, exist_ok=True)
+    summary = summarize_continuous(result)
+    (output_dir / "metadata.json").write_text(json.dumps(metadata, indent=2, ensure_ascii=False) + "\n")
+    with (output_dir / "samples.jsonl").open("w") as h:
+        for row in result.samples:
+            h.write(json.dumps(row, ensure_ascii=False) + "\n")
+    if result.samples:
+        fields = list(dict.fromkeys(k for row in result.samples for k in row.keys()))
+        with (output_dir / "samples.csv").open("w", newline="") as h:
+            writer = csv.DictWriter(h, fieldnames=fields)
+            writer.writeheader(); writer.writerows(result.samples)
+    (output_dir / "summary.json").write_text(json.dumps(summary, indent=2, ensure_ascii=False) + "\n")
+    if summary:
+        with (output_dir / "summary.csv").open("w", newline="") as h:
+            writer = csv.DictWriter(h, fieldnames=list(summary[0].keys()))
+            writer.writeheader(); writer.writerows(summary)
+
+
+def main() -> None:
+    args = parse_args()
+    methods = parse_methods(args.methods)
+    budgets = parse_int_tuple(args.budget_sweep)
+    groups = parse_int_tuple(args.group_size_sweep)
+    full_layers = parse_int_tuple(args.full_layers)
+    if args.context_length < 2 or args.generate_tokens <= 0:
+        raise SystemExit("context length and generate tokens must be positive")
+    random.seed(args.seed); torch.manual_seed(args.seed)
+    if torch.cuda.is_available(): torch.cuda.manual_seed_all(args.seed)
+
+    retrieval = RetrievalConfig(
+        budget=budgets[0],
+        fier_group_size=groups[0],
+        bit2_group_size=groups[0],
+        full_layers=full_layers,
+        measure_topk_recall=args.measure_topk_recall,
+    )
+    variants = make_variants(methods, retrieval, budgets, groups)
+    if args.dry_run:
+        print(json.dumps({"benchmark": args.benchmark, "variants": [v.label for v in variants]}, indent=2))
+        return
+
+    model, tokenizer = load_model_and_tokenizer(args)
+    decoder = LlamaSparseDecoder(model, pca_cache=None, retrieval=retrieval)
+    if args.text_file:
+        blocks = build_text_file_blocks(tokenizer, args)
+    elif args.benchmark == "pg19_ppl" and args.pg19_loader == "partial":
+        blocks = build_pg19_partial_blocks(tokenizer, args)
+    else:
+        blocks = build_pg19_blocks(tokenizer, args) if args.benchmark == "pg19_ppl" else build_longbench_blocks(tokenizer, args)
+    result = continuous_ppl(decoder, blocks, variants, context_length=args.context_length, generate_tokens=args.generate_tokens)
+
+    timestamp = datetime.now(timezone.utc).strftime("%Y%m%dT%H%M%SZ")
+    output_dir = Path(args.output_dir or f"/workspace/outputs/prepacked_{args.benchmark}_{timestamp}")
+    metadata = {
+        "created_at_utc": timestamp,
+        "benchmark": args.benchmark,
+        "model_id": args.model,
+        "context_length": args.context_length,
+        "generate_tokens": args.generate_tokens,
+        "num_blocks": args.num_blocks,
+        "methods": methods,
+        "budget_sweep": budgets,
+        "group_size_sweep": groups,
+        "full_layers": full_layers,
+        "measure_topk_recall": args.measure_topk_recall,
+        "cache_policy": "sealed_groups_fixed__active_group_recomputed_and_sealed_on_full_group",
+        "full_baseline": "all_layers_full_attention_no_retrieval",
+        "sparse_full_layers": full_layers,
+        "fier_cache": "1bit_key_plus_group_minmax",
+        "bit2_cache": "sign_bitplane_plus_magnitude_bitplane",
+        "text_file": args.text_file,
+        "pg19_loader": args.pg19_loader,
+        "pg19_cache_dir": args.pg19_cache_dir,
+        "pg19_max_books": args.pg19_max_books,
+        "dataset_name": args.dataset_name if args.benchmark == "pg19_ppl" else "THUDM/LongBench",
+        "dataset_config": args.dataset_config if args.benchmark == "pg19_ppl" else args.longbench_subset,
+        "dataset_split": args.dataset_split if args.benchmark == "pg19_ppl" else "test",
+        "dtype": args.dtype,
+        "attention": args.attention,
+        "dataset_trust_remote_code": args.dataset_trust_remote_code,
+        "torch_version": torch.__version__,
+    }
+    write_outputs(output_dir, result, metadata)
+    print("\nSummary")
+    for row in summarize_continuous(result):
+        recall = row["mean_topk_recall"]
+        recall_text = "n/a" if recall is None else f"{recall:.4f}"
+        print(
+            f"{row['method']:20s} tokens={row['num_tokens']:4d} "
+            f"PPL={row['perplexity']:.4f} NLL={row['mean_nll']:.6f} "
+            f"prepack_ms={row['mean_prepack_ms']:.1f} "
+            f"search_ms/tok={row['mean_candidate_search_ms_per_token']:.1f} "
+            f"update_ms/tok={row['mean_cache_update_ms_per_token']:.3f} "
+            f"decode_ms/tok={row['mean_decode_ms_per_token']:.1f} "
+            f"ops={row['mean_candidate_search_ops_proxy']/1e6:.2f}M "
+            f"topk_recall={recall_text}"
+        )
+    print(f"Wrote results to {output_dir}")
+
+
+if __name__ == "__main__":
+    main()

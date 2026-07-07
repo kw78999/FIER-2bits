@@ -1,0 +1,33 @@
+{
+  "created_at_utc": "20260707T033935Z",
+  "benchmark": "pg19_ppl",
+  "model_id": "meta-llama/Llama-3.1-8B",
+  "context_length": 128,
+  "generate_tokens": 2,
+  "num_blocks": 1,
+  "methods": [
+    "fier",
+    "bit2_qk"
+  ],
+  "budget_sweep": [
+    32
+  ],
+  "group_size_sweep": [
+    32
+  ],
+  "full_layers": [
+    0,
+    1
+  ],
+  "measure_topk_recall": true,
+  "cache_policy": "sealed_groups_fixed__active_group_recomputed_and_sealed_on_full_group",
+  "fier_cache": "1bit_key_plus_group_minmax",
+  "bit2_cache": "sign_bitplane_plus_magnitude_bitplane",
+  "text_file": "/workspace/local_smoke_text.txt",
+  "dataset_name": "deepmind/pg19",
+  "dataset_config": null,
+  "dataset_split": "test",
+  "dtype": "bfloat16",
+  "attention": "sdpa",
+  "torch_version": "2.4.1+cu124"
+}

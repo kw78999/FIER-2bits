@@ -1,0 +1,16 @@
+[
+  {
+    "method": "full",
+    "num_tokens": 1,
+    "mean_nll": 7.829831123352051,
+    "perplexity": 2514.5046964366948,
+    "mean_candidate_ratio": 1.0,
+    "mean_prepack_ms": 0.0,
+    "mean_decode_ms_per_token": 352.0011492073536,
+    "mean_candidate_search_ms_per_token": 29.42691196128726,
+    "mean_cache_update_ms_per_token": 1.5304870903491974,
+    "mean_selected_attention_ms_per_token": 172.34729655086994,
+    "mean_candidate_search_ops_proxy": 0.0,
+    "mean_topk_recall": null
+  }
+]
