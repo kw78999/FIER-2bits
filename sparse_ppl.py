@@ -176,7 +176,9 @@ class RetrievalConfig:
     pqsift_keep_ratio: float = 0.75
     quest_page_size: int = 16
     fier_group_size: int = 32
+    fier_backend: str = "reference"
     bit2_group_size: int = 64
+    bit2_backend: str = "reference"
     full_layers: tuple[int, ...] = (0, 1)
     measure_topk_recall: bool = False
 
@@ -193,8 +195,14 @@ class RetrievalConfig:
             raise ValueError("quest_page_size must be positive")
         if self.fier_group_size <= 0:
             raise ValueError("fier_group_size must be positive")
+        if self.fier_backend not in {"reference", "triton"}:
+            raise ValueError("fier_backend must be reference or triton")
         if self.bit2_group_size <= 0:
             raise ValueError("bit2_group_size must be positive")
+        if self.bit2_backend not in {"reference", "cuda_popc", "cuda_popc_histogram"}:
+            raise ValueError(
+                "bit2_backend must be reference, cuda_popc, or cuda_popc_histogram"
+            )
 
 
 @dataclass(frozen=True)
@@ -357,9 +365,24 @@ def select_fier(
     *,
     group_size: int,
     budget: int,
+    backend: str = "reference",
 ) -> torch.Tensor:
-    dequantized = fier_dequantize_1bit(keys, group_size=group_size)
-    indices = _topk_indices(dequantized @ query.float(), budget)
+    if backend == "reference":
+        scores = fier_dequantize_1bit(keys, group_size=group_size) @ query.float()
+    elif backend == "triton":
+        if not query.is_cuda or not keys.is_cuda:
+            raise RuntimeError("FIER Triton backend requires CUDA query and keys")
+        from fier_triton import score_tensors
+
+        scores = score_tensors(
+            query.view(1, 1, -1),
+            keys.view(1, keys.shape[0], keys.shape[1]).contiguous(),
+            head_to_kv=torch.zeros(1, device=query.device, dtype=torch.long),
+            group_size=group_size,
+        )[0, 0]
+    else:
+        raise ValueError(f"Unknown FIER backend: {backend}")
+    indices = _topk_indices(scores, budget)
     return _include_current(indices, keys.shape[0], min(budget, keys.shape[0]))
 
 
@@ -418,23 +441,32 @@ def bit2_interaction_scores_from_bits(
     key_sign: torch.Tensor,
     key_magnitude: torch.Tensor,
 ) -> torch.Tensor:
-    """Reference implementation of the XNOR plus magnitude AND/OR formula."""
+    """Exact 3-POPC score, expressed on unpacked bool tensors.
+
+    x = q_sign XOR k_sign; score = D + popc(q_mag) + popc(k_mag)
+    - 2 * (popc(x) + popc(x & q_mag) + popc(x & k_mag)).
+    This is algebraically identical to the older XNOR + OR/AND expression.
+    """
     if query_sign.ndim != 1 or query_magnitude.shape != query_sign.shape:
         raise ValueError("Query sign/magnitude bits must be matching 1-D tensors")
     if key_sign.ndim != 2 or key_magnitude.shape != key_sign.shape:
         raise ValueError("Key sign/magnitude bits must be matching 2-D tensors")
     if key_sign.shape[1] != query_sign.numel():
         raise ValueError("Query/key bit dimensions do not match")
-    same_sign = key_sign == query_sign.unsqueeze(0)
-    both_large = key_magnitude & query_magnitude.unsqueeze(0)
-    either_large = key_magnitude | query_magnitude.unsqueeze(0)
+    x = torch.logical_xor(key_sign, query_sign.unsqueeze(0))
+    q = query_magnitude.unsqueeze(0)
+    k = key_magnitude
     dimension = query_sign.numel()
     return (
-        2 * same_sign.sum(dim=-1, dtype=torch.int32) - dimension
-        + 2 * (same_sign & either_large).sum(dim=-1, dtype=torch.int32)
-        - either_large.sum(dim=-1, dtype=torch.int32)
-        + 2 * (same_sign & both_large).sum(dim=-1, dtype=torch.int32)
-        - both_large.sum(dim=-1, dtype=torch.int32)
+        dimension
+        + query_magnitude.sum(dtype=torch.int32)
+        + key_magnitude.sum(dim=-1, dtype=torch.int32)
+        - 2
+        * (
+            x.sum(dim=-1, dtype=torch.int32)
+            + (x & q).sum(dim=-1, dtype=torch.int32)
+            + (x & k).sum(dim=-1, dtype=torch.int32)
+        )
     )
 
 
@@ -478,7 +510,7 @@ def bit2_interaction_scores_packed(
     *,
     dimension: int,
 ) -> torch.Tensor:
-    """Packed XNOR plus magnitude AND/OR score using byte-wise popcount."""
+    """Exact 3-POPC score using packed uint8 bitplanes."""
     if query_sign.dtype != torch.uint8 or query_magnitude.dtype != torch.uint8:
         raise ValueError("Packed query bitplanes must be uint8")
     if key_sign.dtype != torch.uint8 or key_magnitude.dtype != torch.uint8:
@@ -490,33 +522,30 @@ def bit2_interaction_scores_packed(
     if key_sign.shape[1] != query_sign.numel():
         raise ValueError("Packed query/key word counts do not match")
 
-    same_sign = torch.bitwise_not(torch.bitwise_xor(key_sign, query_sign.unsqueeze(0)))
-    both_large = torch.bitwise_and(key_magnitude, query_magnitude.unsqueeze(0))
-    either_large = torch.bitwise_or(key_magnitude, query_magnitude.unsqueeze(0))
+    x = torch.bitwise_xor(key_sign, query_sign.unsqueeze(0))
+    q = query_magnitude.unsqueeze(0)
+    k = key_magnitude
     valid_bits = dimension % 8
     if valid_bits:
         mask = (1 << valid_bits) - 1
-        same_sign = same_sign.clone()
-        both_large = both_large.clone()
-        either_large = either_large.clone()
-        same_sign[:, -1] = torch.bitwise_and(same_sign[:, -1], mask)
-        both_large[:, -1] = torch.bitwise_and(both_large[:, -1], mask)
-        either_large[:, -1] = torch.bitwise_and(either_large[:, -1], mask)
-    same_and_either_large = torch.bitwise_and(same_sign, either_large)
-    same_and_both_large = torch.bitwise_and(same_sign, both_large)
-    count_same = _popcount_uint8(same_sign).sum(dim=-1, dtype=torch.int32)
-    count_either_large = _popcount_uint8(either_large).sum(dim=-1, dtype=torch.int32)
-    count_both_large = _popcount_uint8(both_large).sum(dim=-1, dtype=torch.int32)
-    count_same_either_large = _popcount_uint8(same_and_either_large).sum(
-        dim=-1, dtype=torch.int32
-    )
-    count_same_both_large = _popcount_uint8(same_and_both_large).sum(
-        dim=-1, dtype=torch.int32
-    )
+        x = x.clone()
+        q = q.clone()
+        k = k.clone()
+        x[:, -1] = torch.bitwise_and(x[:, -1], mask)
+        q[:, -1] = torch.bitwise_and(q[:, -1], mask)
+        k[:, -1] = torch.bitwise_and(k[:, -1], mask)
+    q_count = _popcount_uint8(q).sum(dtype=torch.int32)
+    k_count = _popcount_uint8(k).sum(dim=-1, dtype=torch.int32)
     return (
-        2 * count_same - dimension
-        + 2 * count_same_either_large - count_either_large
-        + 2 * count_same_both_large - count_both_large
+        int(dimension)
+        + q_count
+        + k_count
+        - 2
+        * (
+            _popcount_uint8(x).sum(dim=-1, dtype=torch.int32)
+            + _popcount_uint8(torch.bitwise_and(x, q)).sum(dim=-1, dtype=torch.int32)
+            + _popcount_uint8(torch.bitwise_and(x, k)).sum(dim=-1, dtype=torch.int32)
+        )
     )
 
 
@@ -535,12 +564,41 @@ def bit2_approximate_scores(
 
 
 def select_bit2_qk(
-    query: torch.Tensor, keys: torch.Tensor, *, group_size: int, budget: int
+    query: torch.Tensor,
+    keys: torch.Tensor,
+    *,
+    group_size: int,
+    budget: int,
+    backend: str = "reference",
 ) -> torch.Tensor:
-    indices = _topk_indices(
-        bit2_approximate_scores(query, keys, group_size=group_size), budget
-    )
-    return _include_current(indices, keys.shape[0], min(budget, keys.shape[0]))
+    if backend == "reference":
+        indices = _topk_indices(
+            bit2_approximate_scores(query, keys, group_size=group_size), budget
+        )
+        return _include_current(indices, keys.shape[0], min(budget, keys.shape[0]))
+    if backend in {"cuda_popc", "cuda_popc_histogram"}:
+        if not query.is_cuda or not keys.is_cuda:
+            raise RuntimeError(f"{backend} requires CUDA query and keys")
+        from bit2_cuda import histogram_topk_from_scores, score_tensors
+
+        scores = score_tensors(
+            query.view(1, 1, -1),
+            keys.view(1, keys.shape[0], keys.shape[1]),
+            head_to_kv=torch.zeros(1, device=query.device, dtype=torch.long),
+            valid_tokens=torch.tensor([keys.shape[0]], device=query.device, dtype=torch.long),
+            group_size=group_size,
+        )[0, 0]
+        if backend == "cuda_popc_histogram":
+            indices = histogram_topk_from_scores(
+                scores.view(1, 1, -1),
+                torch.tensor([keys.shape[0]], device=query.device, dtype=torch.long),
+                budget=budget,
+                head_dim=int(query.numel()),
+            )[0, 0]
+        else:
+            indices = torch.topk(scores, k=min(budget, int(scores.numel())), largest=True, sorted=False).indices
+        return _include_current(indices, keys.shape[0], min(budget, keys.shape[0]))
+    raise ValueError(f"Unknown bit2 backend: {backend}")
 
 
 def build_packed_fier_head_cache(keys: torch.Tensor, *, group_size: int) -> PackedFIERHeadCache:
@@ -730,10 +788,15 @@ def select_candidates(
             keys,
             group_size=config.fier_group_size,
             budget=config.budget,
+            backend=config.fier_backend,
         )
     if method == "bit2_qk":
         return select_bit2_qk(
-            query, keys, group_size=config.bit2_group_size, budget=config.budget
+            query,
+            keys,
+            group_size=config.bit2_group_size,
+            budget=config.budget,
+            backend=config.bit2_backend,
         )
     raise ValueError(f"Unknown method {method!r}; expected one of {SUPPORTED_METHODS}")
 
@@ -1125,6 +1188,92 @@ class LlamaSparseDecoder:
 
             head_outputs = []
             force_full = method == "full" or layer_idx in self.retrieval.full_layers
+            batched_fier_indices = None
+            if (
+                method == "fier"
+                and self.retrieval.fier_backend == "triton"
+                and not force_full
+            ):
+                if retrieval_caches is not None:
+                    raise RuntimeError(
+                        "FIER Triton backend uses the direct packed path, not "
+                        "prepacked retrieval_caches"
+                    )
+
+                def select_all_fier_heads() -> torch.Tensor:
+                    from fier_triton import score_tensors
+
+                    layer_keys = torch.cat([prefix_keys[0], key_states[0]], dim=1)
+                    head_to_kv = torch.arange(
+                        self.num_heads, device=query_states.device, dtype=torch.long
+                    ) // self.kv_group_size
+                    scores = score_tensors(
+                        query_states[0, :, 0, :].unsqueeze(0),
+                        layer_keys.contiguous(),
+                        head_to_kv=head_to_kv,
+                        group_size=self.retrieval.fier_group_size,
+                    )
+                    topk_budget = min(self.retrieval.budget, int(layer_keys.shape[1]))
+                    return torch.topk(
+                        scores, k=topk_budget, dim=-1, largest=True, sorted=False
+                    ).indices[0]
+
+                batched_fier_indices, candidate_cpu_ms = _timed_component(
+                    select_all_fier_heads,
+                    device=query_states.device,
+                    cuda_events=candidate_events,
+                )
+                diagnostics.candidate_search_ms += candidate_cpu_ms
+
+            batched_bit2_indices = None
+            if (
+                method == "bit2_qk"
+                and self.retrieval.bit2_backend
+                in {"cuda_popc", "cuda_popc_histogram"}
+                and not force_full
+            ):
+                if retrieval_caches is not None:
+                    raise RuntimeError(
+                        "cuda_popc backends currently use the direct packed CUDA path, "
+                        "not prepacked retrieval_caches"
+                    )
+
+                def select_all_bit2_heads() -> torch.Tensor:
+                    from bit2_cuda import histogram_topk_from_scores, score_tensors
+
+                    layer_keys = torch.cat([prefix_keys[0], key_states[0]], dim=1)
+                    head_to_kv = torch.arange(
+                        self.num_heads, device=query_states.device, dtype=torch.long
+                    ) // self.kv_group_size
+                    valid_tokens = torch.tensor(
+                        [layer_keys.shape[1]], device=query_states.device, dtype=torch.long
+                    )
+                    scores = score_tensors(
+                        query_states[0, :, 0, :].unsqueeze(0),
+                        layer_keys,
+                        head_to_kv=head_to_kv,
+                        valid_tokens=valid_tokens,
+                        group_size=self.retrieval.bit2_group_size,
+                    )
+                    topk_budget = min(self.retrieval.budget, int(layer_keys.shape[1]))
+                    if self.retrieval.bit2_backend == "cuda_popc_histogram":
+                        return histogram_topk_from_scores(
+                            scores,
+                            valid_tokens,
+                            budget=topk_budget,
+                            head_dim=self.head_dim,
+                        )[0]
+                    return torch.topk(
+                        scores, k=topk_budget, dim=-1, largest=True, sorted=False
+                    ).indices[0]
+
+                batched_bit2_indices, candidate_cpu_ms = _timed_component(
+                    select_all_bit2_heads,
+                    device=query_states.device,
+                    cuda_events=candidate_events,
+                )
+                diagnostics.candidate_search_ms += candidate_cpu_ms
+
             for head_idx in range(self.num_heads):
                 kv_head_idx = head_idx // self.kv_group_size
                 query = query_states[0, head_idx, 0]
@@ -1146,7 +1295,21 @@ class LlamaSparseDecoder:
                         head_idx,
                         device=query.device,
                     )
-                if (
+                if batched_fier_indices is not None and active_method == "fier":
+                    indices = _include_current(
+                        batched_fier_indices[head_idx],
+                        keys.shape[0],
+                        min(self.retrieval.budget, keys.shape[0]),
+                    )
+                    candidate_cpu_ms = 0.0
+                elif batched_bit2_indices is not None and active_method == "bit2_qk":
+                    indices = _include_current(
+                        batched_bit2_indices[head_idx],
+                        keys.shape[0],
+                        min(self.retrieval.budget, keys.shape[0]),
+                    )
+                    candidate_cpu_ms = 0.0
+                elif (
                     retrieval_caches is not None
                     and not force_full
                     and active_method in {"fier", "bit2_qk"}

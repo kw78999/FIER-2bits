@@ -1,0 +1,16 @@
+.env
+.env.*
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.cache/
+outputs/*
+!outputs/.gitkeep
+data/
+*.egg-info/
+build/
+.ninja_*/
+*.so
+*.pt
+*.pth
+*.safetensors

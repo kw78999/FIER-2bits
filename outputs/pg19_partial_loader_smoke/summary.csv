@@ -1,2 +1,0 @@
-method,num_tokens,mean_nll,perplexity,mean_candidate_ratio,mean_prepack_ms,mean_decode_ms_per_token,mean_candidate_search_ms_per_token,mean_cache_update_ms_per_token,mean_selected_attention_ms_per_token,mean_candidate_search_ops_proxy,mean_topk_recall
-full,1,7.829831123352051,2514.5046964366948,1.0,0.0,352.0011492073536,29.42691196128726,1.5304870903491974,172.34729655086994,0.0,

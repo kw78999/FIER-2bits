@@ -38,6 +38,14 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--methods", default="fier,bit2_qk")
     parser.add_argument("--budget-sweep", default="1024,2048")
     parser.add_argument("--group-size-sweep", default="32,64")
+    parser.add_argument(
+        "--fier-backend", choices=("reference", "triton"), default="triton"
+    )
+    parser.add_argument(
+        "--bit2-backend",
+        choices=("reference", "cuda_popc", "cuda_popc_histogram"),
+        default="reference",
+    )
     parser.add_argument("--full-layers", default="0,1")
     parser.add_argument("--measure-topk-recall", action="store_true", default=True)
     parser.add_argument("--dtype", choices=("bfloat16", "float16", "float32"), default="bfloat16")
@@ -52,7 +60,7 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--dataset-config", default=None)
     parser.add_argument("--dataset-split", default="test")
     parser.add_argument("--pg19-loader", choices=("partial", "hf"), default="partial")
-    parser.add_argument("--pg19-cache-dir", default="/workspace/data/pg19_partial")
+    parser.add_argument("--pg19-cache-dir", default="data/pg19_partial")
     parser.add_argument("--pg19-max-books", type=int, default=64)
     parser.add_argument("--text-file", default=None, help="Local plain text file used instead of datasets.load_dataset.")
     parser.add_argument("--longbench-subset", default="qasper")
@@ -75,6 +83,13 @@ def load_model_and_tokenizer(args: argparse.Namespace):
         raise SystemExit("Install transformers/accelerate first") from exc
 
     token = os.environ.get("HF_TOKEN") or None
+    if token is None:
+        try:
+            from huggingface_hub import get_token
+
+            token = get_token()
+        except Exception:
+            token = None
     dtype = {"bfloat16": torch.bfloat16, "float16": torch.float16, "float32": torch.float32}[args.dtype]
     tokenizer = AutoTokenizer.from_pretrained(
         args.model, token=token, use_fast=True, trust_remote_code=args.trust_remote_code
@@ -239,7 +254,16 @@ def make_variants(methods: tuple[str, ...], retrieval: RetrievalConfig, budgets:
                     budget=budget,
                     **({"fier_group_size": group} if method == "fier" else {"bit2_group_size": group}),
                 )
-                variants.append(EvaluationVariant(method, f"{method}_g{group}_b{budget}", variant_retrieval))
+                backend = (
+                    variant_retrieval.fier_backend
+                    if method == "fier"
+                    else variant_retrieval.bit2_backend
+                )
+                variants.append(
+                    EvaluationVariant(
+                        method, f"{method}_{backend}_g{group}_b{budget}", variant_retrieval
+                    )
+                )
     return variants
 
 
@@ -265,11 +289,18 @@ def continuous_ppl(decoder: LlamaSparseDecoder, blocks: list[torch.Tensor], vari
         for variant in variants:
             decoder.retrieval = variant.retrieval
             method = variant.method
-            group_size = 0 if method == "full" else (
-                variant.retrieval.fier_group_size if method == "fier" else variant.retrieval.bit2_group_size
-            )
+            if method == "fier":
+                group_size = variant.retrieval.fier_group_size
+            elif method == "bit2_qk":
+                group_size = variant.retrieval.bit2_group_size
+            else:
+                group_size = 0
 
-            if method == "full":
+            use_packed_cache = (
+                (method == "fier" and variant.retrieval.fier_backend == "reference")
+                or (method == "bit2_qk" and variant.retrieval.bit2_backend == "reference")
+            )
+            if not use_packed_cache:
                 packed = None
                 prepack_ms = 0.0
             else:
@@ -279,6 +310,17 @@ def continuous_ppl(decoder: LlamaSparseDecoder, blocks: list[torch.Tensor], vari
                 prepack_ms = (time.perf_counter() - pack_started) * 1000.0
 
             past = base_past
+            # One unmeasured decode removes Triton/CUDA JIT and allocator warm-up
+            # from the reported search, attention, and end-to-end decode latency.
+            decoder.decode(
+                past,
+                current_ids[0],
+                method=method,
+                retrieval_caches=packed,
+                return_new_kv=False,
+            )
+            _sync(decoder.device)
+
             total_nll = 0.0
             total_decode_ms = 0.0
             total_search_ms = 0.0
@@ -415,7 +457,9 @@ def main() -> None:
     retrieval = RetrievalConfig(
         budget=budgets[0],
         fier_group_size=groups[0],
+        fier_backend=args.fier_backend,
         bit2_group_size=groups[0],
+        bit2_backend=args.bit2_backend,
         full_layers=full_layers,
         measure_topk_recall=args.measure_topk_recall,
     )
@@ -435,7 +479,7 @@ def main() -> None:
     result = continuous_ppl(decoder, blocks, variants, context_length=args.context_length, generate_tokens=args.generate_tokens)
 
     timestamp = datetime.now(timezone.utc).strftime("%Y%m%dT%H%M%SZ")
-    output_dir = Path(args.output_dir or f"/workspace/outputs/prepacked_{args.benchmark}_{timestamp}")
+    output_dir = Path(args.output_dir or f"outputs/prepacked_{args.benchmark}_{timestamp}")
     metadata = {
         "created_at_utc": timestamp,
         "benchmark": args.benchmark,
@@ -448,10 +492,16 @@ def main() -> None:
         "group_size_sweep": groups,
         "full_layers": full_layers,
         "measure_topk_recall": args.measure_topk_recall,
-        "cache_policy": "sealed_groups_fixed__active_group_recomputed_and_sealed_on_full_group",
+        "cache_policy": (
+            "direct_group_quantize_pack_per_decode"
+            if args.fier_backend == "triton"
+            else "sealed_groups_fixed__active_group_recomputed_and_sealed_on_full_group"
+        ),
         "full_baseline": "all_layers_full_attention_no_retrieval",
         "sparse_full_layers": full_layers,
         "fier_cache": "1bit_key_plus_group_minmax",
+        "fier_backend": args.fier_backend,
+        "bit2_backend": args.bit2_backend,
         "bit2_cache": "sign_bitplane_plus_magnitude_bitplane",
         "text_file": args.text_file,
         "pg19_loader": args.pg19_loader,

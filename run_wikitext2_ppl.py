@@ -22,7 +22,7 @@ from sparse_ppl import (
 )
 
 
-DEFAULT_PCA_BASIS = "/workspace/pca_basis_meta-llama_Llama-3.1-8B_wikitext-103.pt"
+DEFAULT_PCA_BASIS = "pca_basis_meta-llama_Llama-3.1-8B_wikitext-103.pt"
 
 
 def parse_args() -> argparse.Namespace:
@@ -72,7 +72,15 @@ def parse_args() -> argparse.Namespace:
     )
     parser.add_argument("--quest-page-size", type=int, default=16)
     parser.add_argument("--fier-group-size", type=int, default=32)
+    parser.add_argument(
+        "--fier-backend", choices=("reference", "triton"), default="triton"
+    )
     parser.add_argument("--bit2-group-size", type=int, default=64)
+    parser.add_argument(
+        "--bit2-backend",
+        choices=("reference", "cuda_popc", "cuda_popc_histogram"),
+        default="reference",
+    )
     parser.add_argument(
         "--group-size-sweep",
         default=None,
@@ -98,7 +106,7 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument(
         "--output-dir",
         default=None,
-        help="Defaults to /workspace/outputs/ppl_<UTC timestamp>.",
+        help="Defaults to outputs/ppl_<UTC timestamp>.",
     )
     parser.add_argument(
         "--trust-remote-code",
@@ -119,10 +127,17 @@ def load_model_and_tokenizer(args: argparse.Namespace):
     except ModuleNotFoundError as exc:
         raise SystemExit(
             "transformers/accelerate are required. Install with: "
-            "pip install -r /workspace/requirements-ppl.txt"
+            "python3 -m pip install -r requirements-ppl.txt"
         ) from exc
 
     token = os.environ.get("HF_TOKEN") or None
+    if token is None:
+        try:
+            from huggingface_hub import get_token
+
+            token = get_token()
+        except Exception:
+            token = None
     dtype = {
         "bfloat16": torch.bfloat16,
         "float16": torch.float16,
@@ -209,7 +224,9 @@ def main() -> None:
         pqsift_keep_ratio=args.pqsift_r,
         quest_page_size=args.quest_page_size,
         fier_group_size=args.fier_group_size,
+        fier_backend=args.fier_backend,
         bit2_group_size=args.bit2_group_size,
+        bit2_backend=args.bit2_backend,
         full_layers=full_layers,
         measure_topk_recall=args.measure_topk_recall,
     )
@@ -358,7 +375,7 @@ def main() -> None:
     )
 
     timestamp = datetime.now(timezone.utc).strftime("%Y%m%dT%H%M%SZ")
-    output_dir = Path(args.output_dir or f"/workspace/outputs/ppl_{timestamp}")
+    output_dir = Path(args.output_dir or f"outputs/ppl_{timestamp}")
     metadata = {
         "created_at_utc": timestamp,
         "evaluation_type": "sampled_decode_ppl",
@@ -380,6 +397,8 @@ def main() -> None:
         "pca_metadata": None if pca_cache is None else pca_cache.metadata,
         "bit2_range_mode": "query_minmax_half__keys_group_channel_minmax_half",
         "bit2_score_mode": "sign_xnor_weight_1_plus_mag_or_plus_mag_and",
+        "fier_backend": args.fier_backend,
+        "bit2_backend": args.bit2_backend,
         "bit2_storage": "two_uint8_packed_bitplanes_2_bits_per_scalar",
         "bit2_popcount": "uint8_lookup_table_reference",
         "dtype": args.dtype,

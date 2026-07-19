@@ -11,6 +11,7 @@ from sparse_ppl import (
     PCABasis,
     PCABasisCache,
     RetrievalConfig,
+    bit2_approximate_scores,
     bit2_interaction_scores_from_bits,
     bit2_interaction_scores_packed,
     exact_attention,
@@ -21,7 +22,22 @@ from sparse_ppl import (
     quantize_grouped_keys_bit2,
     quantize_query_bit2,
     select_candidates,
+    select_fier,
 )
+
+
+def _old_bit2_score(query_sign, query_mag, key_sign, key_mag):
+    same_sign = key_sign == query_sign.unsqueeze(0)
+    both_large = key_mag & query_mag.unsqueeze(0)
+    either_large = key_mag | query_mag.unsqueeze(0)
+    dimension = query_sign.numel()
+    return (
+        2 * same_sign.sum(dim=-1, dtype=torch.int32) - dimension
+        + 2 * (same_sign & either_large).sum(dim=-1, dtype=torch.int32)
+        - either_large.sum(dim=-1, dtype=torch.int32)
+        + 2 * (same_sign & both_large).sum(dim=-1, dtype=torch.int32)
+        - both_large.sum(dim=-1, dtype=torch.int32)
+    )
 
 
 class RetrievalTests(unittest.TestCase):
@@ -125,6 +141,145 @@ class RetrievalTests(unittest.TestCase):
             dimension=13,
         )
         self.assertTrue(torch.equal(reference, packed))
+
+
+    def test_three_popc_matches_old_formula_exhaustive_single_bit(self) -> None:
+        for qs in (False, True):
+            for qm in (False, True):
+                for ks in (False, True):
+                    for km in (False, True):
+                        query_sign = torch.tensor([qs], dtype=torch.bool)
+                        query_mag = torch.tensor([qm], dtype=torch.bool)
+                        key_sign = torch.tensor([[ks]], dtype=torch.bool)
+                        key_mag = torch.tensor([[km]], dtype=torch.bool)
+                        new_score = bit2_interaction_scores_from_bits(
+                            query_sign, query_mag, key_sign, key_mag
+                        )
+                        old_score = _old_bit2_score(query_sign, query_mag, key_sign, key_mag)
+                        self.assertTrue(torch.equal(new_score, old_score))
+
+    def test_three_popc_matches_old_formula_random_dimensions(self) -> None:
+        for dim in (31, 32, 64, 95, 96, 127, 128):
+            torch.manual_seed(dim)
+            query_sign = torch.randint(0, 2, (dim,), dtype=torch.bool)
+            query_mag = torch.randint(0, 2, (dim,), dtype=torch.bool)
+            key_sign = torch.randint(0, 2, (11, dim), dtype=torch.bool)
+            key_mag = torch.randint(0, 2, (11, dim), dtype=torch.bool)
+            new_score = bit2_interaction_scores_from_bits(
+                query_sign, query_mag, key_sign, key_mag
+            )
+            old_score = _old_bit2_score(query_sign, query_mag, key_sign, key_mag)
+            self.assertTrue(torch.equal(new_score, old_score), dim)
+
+    def test_three_popc_packed_matches_unpacked_random_dimensions(self) -> None:
+        for dim in (31, 32, 64, 95, 96, 127, 128):
+            torch.manual_seed(1000 + dim)
+            query_sign = torch.randint(0, 2, (dim,), dtype=torch.bool)
+            query_mag = torch.randint(0, 2, (dim,), dtype=torch.bool)
+            key_sign = torch.randint(0, 2, (13, dim), dtype=torch.bool)
+            key_mag = torch.randint(0, 2, (13, dim), dtype=torch.bool)
+            reference = bit2_interaction_scores_from_bits(
+                query_sign, query_mag, key_sign, key_mag
+            )
+            packed = bit2_interaction_scores_packed(
+                pack_bool_bits(query_sign),
+                pack_bool_bits(query_mag),
+                pack_bool_bits(key_sign),
+                pack_bool_bits(key_mag),
+                dimension=dim,
+            )
+            self.assertTrue(torch.equal(reference, packed), dim)
+
+    @unittest.skipUnless(torch.cuda.is_available(), "CUDA required")
+    def test_cuda_popc_matches_python_packed_score(self) -> None:
+        from bit2_cuda import histogram_topk_from_scores, score_tensors
+
+        for dtype in (torch.float16, torch.bfloat16):
+            for batch in (1, 2, 4):
+                for dim in (31, 32, 64, 96, 128):
+                    torch.manual_seed(2000 + batch + dim)
+                    q_heads = 6
+                    kv_heads = 2
+                    tokens = 37
+                    group_size = 8
+                    queries = torch.randn(batch, q_heads, dim, device="cuda", dtype=dtype)
+                    keys = torch.randn(kv_heads, tokens, dim, device="cuda", dtype=dtype)
+                    head_to_kv = torch.tensor([0, 0, 0, 1, 1, 1], device="cuda")
+                    scores = score_tensors(
+                        queries,
+                        keys,
+                        head_to_kv=head_to_kv,
+                        valid_tokens=torch.tensor([tokens], device="cuda"),
+                        group_size=group_size,
+                    ).cpu()
+                    expected = torch.empty_like(scores)
+                    for b in range(batch):
+                        for qh in range(q_heads):
+                            kvh = int(head_to_kv[qh])
+                            expected[b, qh] = bit2_approximate_scores(
+                                queries[b, qh].float().cpu(),
+                                keys[kvh].float().cpu(),
+                                group_size=group_size,
+                            )
+                    self.assertTrue(torch.equal(scores, expected), (dtype, batch, dim))
+                    hist = histogram_topk_from_scores(
+                        scores.cuda(),
+                        torch.tensor([tokens], device="cuda"),
+                        budget=9,
+                        head_dim=dim,
+                    ).cpu()
+                    for b in range(batch):
+                        for qh in range(q_heads):
+                            row = scores[b, qh]
+                            deterministic = sorted(range(tokens), key=lambda i: (-int(row[i]), i))[:9]
+                            self.assertEqual(hist[b, qh].tolist(), deterministic)
+
+    @unittest.skipUnless(torch.cuda.is_available(), "CUDA required")
+    def test_fier_triton_matches_reference_scores_and_topk(self) -> None:
+        from fier_triton import score_tensors
+
+        for dtype in (torch.float16, torch.bfloat16, torch.float32):
+            for tokens in (1, 31, 32, 37, 65):
+                for group_size in (8, 32, 64):
+                    torch.manual_seed(3000 + tokens + group_size)
+                    queries = torch.randn(2, 6, 13, device="cuda", dtype=dtype)
+                    keys = torch.randn(2, tokens, 13, device="cuda", dtype=dtype)
+                    head_to_kv = torch.tensor([0, 0, 0, 1, 1, 1], device="cuda")
+                    scores = score_tensors(
+                        queries,
+                        keys,
+                        head_to_kv=head_to_kv,
+                        group_size=group_size,
+                    )
+                    expected = torch.stack(
+                        [
+                            torch.stack(
+                                [
+                                    fier_dequantize_1bit(
+                                        keys[int(head_to_kv[head])],
+                                        group_size=group_size,
+                                    )
+                                    @ queries[batch, head].float()
+                                    for head in range(6)
+                                ]
+                            )
+                            for batch in range(2)
+                        ]
+                    )
+                    self.assertTrue(
+                        torch.allclose(scores, expected, rtol=0.0, atol=2e-5),
+                        (dtype, tokens, group_size),
+                    )
+
+        query = torch.randn(13, device="cuda", dtype=torch.float16)
+        keys = torch.randn(37, 13, device="cuda", dtype=torch.float16)
+        reference = select_fier(
+            query, keys, group_size=8, budget=9, backend="reference"
+        )
+        optimized = select_fier(
+            query, keys, group_size=8, budget=9, backend="triton"
+        )
+        self.assertTrue(torch.equal(reference, optimized))
 
     def test_two_bitplanes_use_two_physical_bits_per_scalar(self) -> None:
         bits = torch.zeros((7, 128), dtype=torch.bool)

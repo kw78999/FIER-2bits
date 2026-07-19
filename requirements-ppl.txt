@@ -2,3 +2,5 @@ accelerate>=0.33
 datasets>=2.20
 safetensors>=0.4
 transformers>=4.44,<5
+ninja>=1.11
+triton>=3.0

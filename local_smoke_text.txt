@@ -1,1 +1,0 @@
-This is a local smoke document for continuous decode testing. It repeats enough simple text to exercise the packed retrieval cache update path. 
