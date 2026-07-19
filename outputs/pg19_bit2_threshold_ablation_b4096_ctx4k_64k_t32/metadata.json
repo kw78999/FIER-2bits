@@ -1,0 +1,52 @@
+{
+  "created_at_utc": "20260719T134337Z",
+  "benchmark": "pg19_ppl_context_sweep",
+  "model_id": "meta-llama/Llama-3.1-8B",
+  "context_plan": [
+    [
+      4096,
+      5
+    ],
+    [
+      8192,
+      5
+    ],
+    [
+      16384,
+      5
+    ],
+    [
+      32768,
+      4
+    ],
+    [
+      65536,
+      2
+    ]
+  ],
+  "generate_tokens": 32,
+  "methods": [
+    "bit2_cuda_popc_maxhalf_g32_b4096",
+    "bit2_cuda_popc_median_g32_b4096"
+  ],
+  "budget_sweep": [
+    4096
+  ],
+  "bit2_threshold_ablation": true,
+  "group_size": 32,
+  "quest_page_size": 16,
+  "fier_backend": "triton",
+  "full_layers": [
+    0,
+    1
+  ],
+  "measure_topk_recall_vs_exact_qk_topk": false,
+  "dataset_name": "deepmind/pg19",
+  "dataset_split": "test",
+  "pg19_loader": "partial",
+  "pg19_max_books": 64,
+  "dtype": "float16",
+  "attention": "sdpa",
+  "device_map": "cuda:0",
+  "expected_runtime_note": "Default plan is intended to finish within roughly 3 hours on one RTX A6000, excluding first-time model download."
+}

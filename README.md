@@ -28,7 +28,7 @@ export HF_TOKEN=hf_...
 ```
 
 The FIER Triton and 2-bit CUDA extensions compile on first use. Build artifacts,
-downloaded datasets, credentials, and experiment outputs are ignored by Git.
+downloaded datasets, credentials, and model weights are ignored by Git.
 
 ## Quick validation
 
@@ -92,8 +92,9 @@ integration.
 
 ## Outputs and scope
 
-Experiment outputs are written below `outputs/` and are intentionally not
-versioned. Dataset fragments are cached below `data/` and are also excluded.
+Experiment outputs are written below `outputs/`. Curated experiment results are
+versioned with the repository; see [outputs/README.md](outputs/README.md) for an
+index. Dataset fragments are cached below `data/` and are excluded.
 
 These runners measure an experimental Python/PyTorch decoding stack. Reported
 end-to-end latency includes framework and instrumentation overhead and should

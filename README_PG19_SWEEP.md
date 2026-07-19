@@ -67,4 +67,4 @@ Outputs are written to `outputs/pg19_fier_bit2_sweep_<UTC timestamp>/`:
 - `summary.json` / `summary.csv`
 - `samples.jsonl` / `samples.csv`
 
-The `outputs/` directory is ignored by Git except for `.gitkeep`.
+Curated results under `outputs/` are versioned with the repository.
