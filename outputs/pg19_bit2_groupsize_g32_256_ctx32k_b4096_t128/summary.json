@@ -1,0 +1,58 @@
+[
+  {
+    "method": "bit2_qk_cuda_popc_g128_b4096",
+    "num_tokens": 512,
+    "mean_nll": 2.505452845191044,
+    "perplexity": 12.249104658175243,
+    "mean_candidate_ratio": 0.12475839324736661,
+    "mean_prepack_ms": 0.0,
+    "mean_decode_ms_per_token": 1181.5167486784048,
+    "mean_candidate_search_ms_per_token": 83.02452568444596,
+    "mean_cache_update_ms_per_token": 14.574545180948917,
+    "mean_selected_attention_ms_per_token": 155.07284796028398,
+    "mean_candidate_search_ops_proxy": 30920130720.0,
+    "mean_topk_recall": 0.3783390765388803
+  },
+  {
+    "method": "bit2_qk_cuda_popc_g256_b4096",
+    "num_tokens": 512,
+    "mean_nll": 2.4802654952034118,
+    "perplexity": 11.944435187168112,
+    "mean_candidate_ratio": 0.12475839324736661,
+    "mean_prepack_ms": 0.0,
+    "mean_decode_ms_per_token": 1242.2696413850645,
+    "mean_candidate_search_ms_per_token": 143.80471857572138,
+    "mean_cache_update_ms_per_token": 14.583705589757301,
+    "mean_selected_attention_ms_per_token": 155.18672302816412,
+    "mean_candidate_search_ops_proxy": 30920130720.0,
+    "mean_topk_recall": 0.3796889593203864
+  },
+  {
+    "method": "bit2_qk_cuda_popc_g32_b4096",
+    "num_tokens": 512,
+    "mean_nll": 2.528040597452403,
+    "perplexity": 12.528932847107786,
+    "mean_candidate_ratio": 0.12475839324736661,
+    "mean_prepack_ms": 0.0,
+    "mean_decode_ms_per_token": 1130.5037488273229,
+    "mean_candidate_search_ms_per_token": 31.434092921843785,
+    "mean_cache_update_ms_per_token": 14.564613666152582,
+    "mean_selected_attention_ms_per_token": 155.50153793486243,
+    "mean_candidate_search_ops_proxy": 30920130720.0,
+    "mean_topk_recall": 0.373211053510507
+  },
+  {
+    "method": "bit2_qk_cuda_popc_g64_b4096",
+    "num_tokens": 512,
+    "mean_nll": 2.5160192160119683,
+    "perplexity": 12.379219450200893,
+    "mean_candidate_ratio": 0.12475839324736661,
+    "mean_prepack_ms": 0.0,
+    "mean_decode_ms_per_token": 1151.6765689229942,
+    "mean_candidate_search_ms_per_token": 53.16879507297472,
+    "mean_cache_update_ms_per_token": 14.585663273464888,
+    "mean_selected_attention_ms_per_token": 154.96941862461972,
+    "mean_candidate_search_ops_proxy": 30920130720.0,
+    "mean_topk_recall": 0.3764675299326577
+  }
+]

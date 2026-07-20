@@ -1,0 +1,22 @@
+[
+  {
+    "method": "bit2_qk_cuda_popc_g32_b4096",
+    "num_tokens": 128,
+    "mean_nll": 3.2269621635796284,
+    "perplexity": 25.202978036321134,
+    "mean_candidate_ratio": 0.06243952011044528,
+    "mean_prepack_ms": 452.6405818760395,
+    "mean_decode_ms_per_token": 740.1815363846254,
+    "mean_candidate_search_ms_per_token": 8.72453351265358,
+    "mean_cache_update_ms_per_token": 29.189988534199074,
+    "mean_selected_attention_ms_per_token": 167.833353420021,
+    "mean_candidate_search_ops_proxy": 13414523040.0,
+    "mean_topk_recall": 0.28265637159347534,
+    "mean_attention_mass_recall": 0.9239901880782782,
+    "mean_score_mae": 15.866248578298837,
+    "mean_score_normalized_mae": 0.783399636275135,
+    "mean_spearman_correlation": 0.5072342719522567,
+    "metadata_bytes_per_token": 0,
+    "packed_k_bytes_per_token": 32
+  }
+]

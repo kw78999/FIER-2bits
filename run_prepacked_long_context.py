@@ -43,11 +43,33 @@ def parse_args() -> argparse.Namespace:
     )
     parser.add_argument(
         "--bit2-backend",
-        choices=("reference", "cuda_popc", "cuda_popc_histogram"),
+        choices=(
+            "reference",
+            "cuda_popc",
+            "cuda_popc_direct",
+            "cuda_popc_histogram",
+            "group_mean4",
+            "group_mean2",
+            "cuda_2mean",
+            "triton_2mean",
+            "2mean",
+            "qk_2mean",
+            "cuda_qk_2mean",
+            "triton_qk_2mean",
+        ),
         default="reference",
     )
+    parser.add_argument(
+        "--bit2-backend-sweep",
+        default=None,
+        help="Comma-separated 2-bit backends evaluated on the same blocks.",
+    )
     parser.add_argument("--full-layers", default="0,1")
-    parser.add_argument("--measure-topk-recall", action="store_true", default=True)
+    parser.add_argument(
+        "--measure-topk-recall",
+        action=argparse.BooleanOptionalAction,
+        default=True,
+    )
     parser.add_argument("--dtype", choices=("bfloat16", "float16", "float32"), default="bfloat16")
     parser.add_argument("--device-map", default="auto")
     parser.add_argument("--attention", choices=("sdpa", "eager", "flash_attention_2"), default="sdpa")
@@ -70,9 +92,9 @@ def parse_args() -> argparse.Namespace:
 
 def parse_methods(value: str) -> tuple[str, ...]:
     methods = tuple(item.strip() for item in value.split(",") if item.strip())
-    unknown = [m for m in methods if m not in {"full", "fier", "bit2_qk"}]
+    unknown = [m for m in methods if m not in {"full", "quest", "fier", "bit2_qk"}]
     if unknown:
-        raise ValueError(f"This runner supports full/FIER/bit2, got {unknown}")
+        raise ValueError(f"This runner supports full/Quest/FIER/bit2, got {unknown}")
     return methods
 
 
@@ -241,29 +263,65 @@ def build_longbench_blocks(tokenizer: Any, args: argparse.Namespace) -> list[tor
     return blocks
 
 
-def make_variants(methods: tuple[str, ...], retrieval: RetrievalConfig, budgets: tuple[int, ...], groups: tuple[int, ...]) -> list[EvaluationVariant]:
+def make_variants(
+    methods: tuple[str, ...],
+    retrieval: RetrievalConfig,
+    budgets: tuple[int, ...],
+    groups: tuple[int, ...],
+    bit2_backends: tuple[str, ...],
+) -> list[EvaluationVariant]:
     variants = []
     for method in methods:
         if method == "full":
             variants.append(EvaluationVariant("full", "full", retrieval))
             continue
-        for group in groups:
+        if method == "quest":
             for budget in budgets:
-                variant_retrieval = replace(
-                    retrieval,
-                    budget=budget,
-                    **({"fier_group_size": group} if method == "fier" else {"bit2_group_size": group}),
-                )
-                backend = (
-                    variant_retrieval.fier_backend
-                    if method == "fier"
-                    else variant_retrieval.bit2_backend
-                )
                 variants.append(
                     EvaluationVariant(
-                        method, f"{method}_{backend}_g{group}_b{budget}", variant_retrieval
+                        "quest", f"quest_b{budget}", replace(retrieval, budget=budget)
                     )
                 )
+            continue
+        for group in groups:
+            for budget in budgets:
+                backends = (
+                    bit2_backends
+                    if method == "bit2_qk"
+                    else (retrieval.fier_backend,)
+                )
+                for selected_backend in backends:
+                    backend_update = (
+                        {"bit2_backend": selected_backend}
+                        if method == "bit2_qk"
+                        else {}
+                    )
+                    variant_retrieval = replace(
+                        retrieval,
+                        budget=budget,
+                        **(
+                            {"fier_group_size": group}
+                            if method == "fier"
+                            else {"bit2_group_size": group}
+                        ),
+                        **backend_update,
+                    )
+                    backend = (
+                        variant_retrieval.fier_backend
+                        if method == "fier"
+                        else variant_retrieval.bit2_backend
+                    )
+                    variants.append(
+                        EvaluationVariant(
+                            method,
+                            (
+                                f"bit2_qk_2mean_g{group}_b{budget}"
+                                if method == "bit2_qk" and backend == "qk_2mean"
+                                else f"{method}_{backend}_g{group}_b{budget}"
+                            ),
+                            variant_retrieval,
+                        )
+                    )
     return variants
 
 
@@ -299,6 +357,17 @@ def continuous_ppl(decoder: LlamaSparseDecoder, blocks: list[torch.Tensor], vari
             use_packed_cache = (
                 (method == "fier" and variant.retrieval.fier_backend == "reference")
                 or (method == "bit2_qk" and variant.retrieval.bit2_backend == "reference")
+                or (
+                    method == "bit2_qk"
+                    and variant.retrieval.bit2_backend == "cuda_popc"
+                )
+                or (
+                    method == "bit2_qk"
+                    and variant.retrieval.bit2_backend in {
+                        "2mean", "cuda_2mean", "triton_2mean",
+                        "qk_2mean", "cuda_qk_2mean", "triton_qk_2mean",
+                    }
+                )
             )
             if not use_packed_cache:
                 packed = None
@@ -365,6 +434,9 @@ def continuous_ppl(decoder: LlamaSparseDecoder, blocks: list[torch.Tensor], vari
                     recall_sum += diagnostics.topk_recall
                     recall_calls += 1
 
+                is_mean_backend = method == "bit2_qk" and "2mean" in variant.retrieval.bit2_backend
+                words_per_token = math.ceil(decoder.head_dim / 32)
+
                 result.samples.append({
                     "block_idx": block_idx,
                     "step": step,
@@ -380,6 +452,12 @@ def continuous_ppl(decoder: LlamaSparseDecoder, blocks: list[torch.Tensor], vari
                     "selected_attention_ms": diagnostics.selected_attention_ms,
                     "candidate_search_ops_proxy": diagnostics.candidate_search_ops,
                     "topk_recall": diagnostics.topk_recall,
+                    "attention_mass_recall": diagnostics.attention_mass_recall,
+                    "score_mae": diagnostics.score_mae,
+                    "score_normalized_mae": diagnostics.score_normalized_mae,
+                    "spearman_correlation": diagnostics.spearman,
+                    "metadata_bytes_per_token": 4 * words_per_token if is_mean_backend else 0,
+                    "packed_k_bytes_per_token": (12 * words_per_token if is_mean_backend else (8 * words_per_token if method == "bit2_qk" else None)),
                     "budget": variant.retrieval.budget,
                     "group_size": group_size,
                 })
@@ -407,6 +485,10 @@ def summarize_continuous(result: PPLResult) -> list[dict[str, Any]]:
         rs = [r for r in result.samples if r["method"] == method]
         mean_nll = sum(float(r["nll"]) for r in rs) / len(rs)
         recall_values = [float(r["topk_recall"]) for r in rs if r.get("topk_recall") is not None]
+        mass_values = [float(r["attention_mass_recall"]) for r in rs if r.get("attention_mass_recall") is not None]
+        mae_values = [float(r["score_mae"]) for r in rs if r.get("score_mae") is not None]
+        normalized_mae_values = [float(r["score_normalized_mae"]) for r in rs if r.get("score_normalized_mae") is not None]
+        spearman_values = [float(r["spearman_correlation"]) for r in rs if r.get("spearman_correlation") is not None]
         rows.append({
             "method": method,
             "num_tokens": len(rs),
@@ -420,6 +502,12 @@ def summarize_continuous(result: PPLResult) -> list[dict[str, Any]]:
             "mean_selected_attention_ms_per_token": sum(float(r["selected_attention_ms"]) for r in rs) / len(rs),
             "mean_candidate_search_ops_proxy": sum(float(r["candidate_search_ops_proxy"]) for r in rs) / len(rs),
             "mean_topk_recall": None if not recall_values else sum(recall_values) / len(recall_values),
+            "mean_attention_mass_recall": None if not mass_values else sum(mass_values) / len(mass_values),
+            "mean_score_mae": None if not mae_values else sum(mae_values) / len(mae_values),
+            "mean_score_normalized_mae": None if not normalized_mae_values else sum(normalized_mae_values) / len(normalized_mae_values),
+            "mean_spearman_correlation": None if not spearman_values else sum(spearman_values) / len(spearman_values),
+            "metadata_bytes_per_token": rs[0].get("metadata_bytes_per_token"),
+            "packed_k_bytes_per_token": rs[0].get("packed_k_bytes_per_token"),
         })
     return rows
 
@@ -448,6 +536,33 @@ def main() -> None:
     methods = parse_methods(args.methods)
     budgets = parse_int_tuple(args.budget_sweep)
     groups = parse_int_tuple(args.group_size_sweep)
+    bit2_backends = (
+        (args.bit2_backend,)
+        if args.bit2_backend_sweep is None
+        else tuple(
+            item.strip()
+            for item in args.bit2_backend_sweep.split(",")
+            if item.strip()
+        )
+    )
+    valid_bit2_backends = {
+        "reference",
+        "cuda_popc",
+        "cuda_popc_direct",
+        "cuda_popc_histogram",
+        "group_mean4",
+        "group_mean2",
+        "cuda_2mean",
+        "triton_2mean",
+        "2mean",
+        "qk_2mean",
+        "cuda_qk_2mean",
+        "triton_qk_2mean",
+    }
+    if not bit2_backends or any(
+        backend not in valid_bit2_backends for backend in bit2_backends
+    ):
+        raise SystemExit(f"Invalid --bit2-backend-sweep: {bit2_backends}")
     full_layers = parse_int_tuple(args.full_layers)
     if args.context_length < 2 or args.generate_tokens <= 0:
         raise SystemExit("context length and generate tokens must be positive")
@@ -459,11 +574,11 @@ def main() -> None:
         fier_group_size=groups[0],
         fier_backend=args.fier_backend,
         bit2_group_size=groups[0],
-        bit2_backend=args.bit2_backend,
+        bit2_backend=bit2_backends[0],
         full_layers=full_layers,
         measure_topk_recall=args.measure_topk_recall,
     )
-    variants = make_variants(methods, retrieval, budgets, groups)
+    variants = make_variants(methods, retrieval, budgets, groups, bit2_backends)
     if args.dry_run:
         print(json.dumps({"benchmark": args.benchmark, "variants": [v.label for v in variants]}, indent=2))
         return
@@ -492,17 +607,19 @@ def main() -> None:
         "group_size_sweep": groups,
         "full_layers": full_layers,
         "measure_topk_recall": args.measure_topk_recall,
-        "cache_policy": (
-            "direct_group_quantize_pack_per_decode"
-            if args.fier_backend == "triton"
-            else "sealed_groups_fixed__active_group_recomputed_and_sealed_on_full_group"
-        ),
+        "cache_policy": "persistent_2mean_cache_or_backend_specific",
         "full_baseline": "all_layers_full_attention_no_retrieval",
         "sparse_full_layers": full_layers,
         "fier_cache": "1bit_key_plus_group_minmax",
         "fier_backend": args.fier_backend,
-        "bit2_backend": args.bit2_backend,
-        "bit2_cache": "sign_bitplane_plus_magnitude_bitplane",
+        "bit2_backend": bit2_backends[0],
+        "bit2_backend_sweep": bit2_backends,
+        "group_mean_prototype": (
+            "means_recomputed_from_full_k_each_decode"
+            if any(backend.startswith("group_mean") for backend in bit2_backends)
+            else None
+        ),
+        "bit2_cache": "sign_plus_magnitude_uint32_and_optional_fp16_low_delta",
         "text_file": args.text_file,
         "pg19_loader": args.pg19_loader,
         "pg19_cache_dir": args.pg19_cache_dir,

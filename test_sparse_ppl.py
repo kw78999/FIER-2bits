@@ -124,6 +124,135 @@ class RetrievalTests(unittest.TestCase):
             direct.append(score)
         self.assertTrue(torch.equal(formula.cpu(), torch.tensor(direct, dtype=torch.int32)))
 
+    def test_bit2_group_mean_reconstruction_and_weighted_score(self) -> None:
+        from bit2_cuda import (
+            reconstruct_keys_from_group_means,
+            score_group_mean_tensors,
+        )
+
+        keys = torch.tensor([[[1.0], [3.0], [-2.0], [-6.0]]])
+        queries = torch.tensor([[[2.0]]])
+        head_to_kv = torch.tensor([0])
+
+        signed4, signed_means = reconstruct_keys_from_group_means(
+            keys, group_size=4, mean_mode="signed4"
+        )
+        self.assertTrue(torch.equal(signed4, keys))
+        self.assertEqual(
+            [float(mean.item()) for mean in signed_means],
+            [1.0, 3.0, -2.0, -6.0],
+        )
+
+        abs2, abs_means = reconstruct_keys_from_group_means(
+            keys, group_size=4, mean_mode="abs2"
+        )
+        self.assertTrue(
+            torch.equal(
+                abs2,
+                torch.tensor([[[1.5], [4.5], [-1.5], [-4.5]]]),
+            )
+        )
+        self.assertEqual(
+            [float(mean.item()) for mean in abs_means],
+            [1.5, 4.5],
+        )
+        scores = score_group_mean_tensors(
+            queries,
+            keys,
+            head_to_kv=head_to_kv,
+            group_size=4,
+            mean_mode="abs2",
+        )
+        self.assertTrue(
+            torch.equal(scores, torch.tensor([[[3.0, 9.0, -3.0, -9.0]]]))
+        )
+
+    def test_2mean_direct_weight_and_count_references_match(self) -> None:
+        from bit2_cuda import reference_2mean_count_scores, reference_2mean_scores
+
+        for dim in (31, 32, 65, 128):
+            torch.manual_seed(4000 + dim)
+            queries = torch.randn(1, 6, dim)
+            keys = torch.randn(2, 37, dim)
+            mapping = torch.tensor([0, 0, 0, 1, 1, 1])
+            direct = reference_2mean_scores(
+                queries, keys, head_to_kv=mapping, group_size=32
+            )
+            counts = reference_2mean_count_scores(
+                queries, keys, head_to_kv=mapping, group_size=32
+            )
+            self.assertTrue(torch.allclose(direct, counts, atol=2e-5, rtol=0), dim)
+
+    def test_2mean_empty_category_has_zero_delta(self) -> None:
+        from bit2_cuda import reference_2mean_components
+
+        # All-positive constants are all high under max/2, so the low set is empty.
+        keys = torch.ones(1, 32, 32)
+        _, _, low, delta = reference_2mean_components(keys, group_size=32)
+        self.assertTrue(torch.equal(low, torch.ones_like(low)))
+        self.assertTrue(torch.equal(delta, torch.zeros_like(delta)))
+
+    def test_qk_2mean_direct_and_count_references_match(self) -> None:
+        from bit2_cuda import (
+            reference_q_2mean_components,
+            reference_qk_2mean_count_scores,
+            reference_qk_2mean_scores,
+        )
+        for dim in (31, 32, 65, 128):
+            torch.manual_seed(6000 + dim)
+            q = torch.randn(1, 6, dim)
+            k = torch.randn(2, 37, dim)
+            mapping = torch.tensor([0, 0, 0, 1, 1, 1])
+            direct = reference_qk_2mean_scores(q, k, head_to_kv=mapping, group_size=32)
+            counts = reference_qk_2mean_count_scores(q, k, head_to_kv=mapping, group_size=32)
+            self.assertTrue(torch.allclose(direct, counts, atol=2e-6, rtol=0), dim)
+        _, _, low, delta = reference_q_2mean_components(torch.ones(1, 1, 32))
+        self.assertTrue(torch.equal(low, torch.ones_like(low)))
+        self.assertTrue(torch.equal(delta, torch.zeros_like(delta)))
+
+    @unittest.skipUnless(torch.cuda.is_available(), "CUDA required")
+    def test_cuda_and_triton_qk_2mean_match_direct_reference(self) -> None:
+        from bit2_2mean_triton import score_qk_2mean_triton_packed
+        from bit2_cuda import pack_keys_2mean, reference_qk_2mean_scores, score_qk_2mean_cuda_packed
+        for dim in (31, 32, 65, 128):
+            torch.manual_seed(7000 + dim)
+            q = torch.randn(1, 6, dim, device="cuda", dtype=torch.float16).contiguous()
+            k = torch.randn(2, 37, dim, device="cuda", dtype=torch.float16).contiguous()
+            mapping = torch.tensor([0, 0, 0, 1, 1, 1], device="cuda")
+            packed = pack_keys_2mean(k, group_size=32)
+            expected = reference_qk_2mean_scores(q, k, head_to_kv=mapping, group_size=32)
+            cuda = score_qk_2mean_cuda_packed(q, packed, head_to_kv=mapping, tokens=37)
+            triton = score_qk_2mean_triton_packed(q, packed, head_to_kv=mapping, tokens=37)
+            self.assertTrue(torch.allclose(cuda, expected, atol=0.002, rtol=0), dim)
+            self.assertTrue(torch.allclose(triton, expected, atol=0.002, rtol=0), dim)
+
+    @unittest.skipUnless(torch.cuda.is_available(), "CUDA required")
+    def test_cuda_and_triton_2mean_match_fp32_reference(self) -> None:
+        from bit2_2mean_triton import score_2mean_triton_packed
+        from bit2_cuda import (
+            pack_keys_2mean,
+            reference_2mean_scores,
+            score_2mean_cuda_packed,
+        )
+
+        for dim in (31, 32, 65, 128):
+            torch.manual_seed(5000 + dim)
+            queries = torch.randn(1, 6, dim, device="cuda", dtype=torch.float16)
+            keys = torch.randn(2, 37, dim, device="cuda", dtype=torch.float16).contiguous()
+            mapping = torch.tensor([0, 0, 0, 1, 1, 1], device="cuda")
+            packed = pack_keys_2mean(keys, group_size=32)
+            expected = reference_2mean_scores(
+                queries, keys, head_to_kv=mapping, group_size=32
+            )
+            cuda = score_2mean_cuda_packed(
+                queries.contiguous(), packed, head_to_kv=mapping, tokens=37,
+            )
+            triton = score_2mean_triton_packed(
+                queries, packed, head_to_kv=mapping, tokens=37
+            )
+            self.assertTrue(torch.allclose(cuda, expected, atol=0.02, rtol=0), dim)
+            self.assertTrue(torch.allclose(triton, expected, atol=0.02, rtol=0), dim)
+
     def test_packed_popcount_matches_bool_reference_with_padding(self) -> None:
         torch.manual_seed(17)
         query_sign = torch.randint(0, 2, (13,), dtype=torch.bool)
@@ -233,6 +362,34 @@ class RetrievalTests(unittest.TestCase):
                             row = scores[b, qh]
                             deterministic = sorted(range(tokens), key=lambda i: (-int(row[i]), i))[:9]
                             self.assertEqual(hist[b, qh].tolist(), deterministic)
+
+    @unittest.skipUnless(torch.cuda.is_available(), "CUDA required")
+    def test_persistent_cuda_popc_matches_direct_and_incremental_repack(self) -> None:
+        from bit2_cuda import pack_keys_cached, score_popc_cached_cuda_packed, score_tensors
+        from sparse_ppl import build_packed_bit2cuda_layer_cache, append_packed_bit2cuda_layer_cache
+
+        mapping = torch.tensor([0, 0, 0, 1, 1, 1], device="cuda")
+        for tokens in (31, 32, 37, 63):
+            torch.manual_seed(8000 + tokens)
+            q = torch.randn(1, 6, 128, device="cuda", dtype=torch.float16).contiguous()
+            keys = torch.randn(2, tokens, 128, device="cuda", dtype=torch.float16).contiguous()
+            new_key = torch.randn(2, 1, 128, device="cuda", dtype=torch.float16).contiguous()
+            cache = build_packed_bit2cuda_layer_cache(keys, group_size=32, reserve_tokens=64)
+            append_packed_bit2cuda_layer_cache(cache, new_key)
+            all_keys = torch.cat([keys, new_key], dim=1).contiguous()
+            cached = score_popc_cached_cuda_packed(
+                q, cache.packed, head_to_kv=mapping, tokens=tokens + 1
+            )
+            direct = score_tensors(
+                q, all_keys, head_to_kv=mapping,
+                valid_tokens=torch.tensor([tokens + 1], device="cuda"), group_size=32,
+            )
+            rebuilt = pack_keys_cached(all_keys, group_size=32)
+            rebuilt_scores = score_popc_cached_cuda_packed(
+                q, rebuilt, head_to_kv=mapping, tokens=tokens + 1
+            )
+            self.assertTrue(torch.equal(cached, direct), tokens)
+            self.assertTrue(torch.equal(cached, rebuilt_scores), tokens)
 
     @unittest.skipUnless(torch.cuda.is_available(), "CUDA required")
     def test_fier_triton_matches_reference_scores_and_topk(self) -> None:

@@ -1,0 +1,72 @@
+[
+  {
+    "context": "64k",
+    "method": "full",
+    "raw_method": "full",
+    "num_tokens": 128,
+    "mean_nll": 2.737371389439403,
+    "perplexity": 15.446329301299565,
+    "search_ms_per_token": 5.042248164023476,
+    "decode_ms_per_token": 659.0167485119309,
+    "topk_recall_vs_full": null,
+    "attention_mass_recall": null,
+    "prepack_ms": 0.0,
+    "cache_update_ms_per_token": 29.05057158204727
+  },
+  {
+    "context": "64k",
+    "method": "quest",
+    "raw_method": "quest_b4096",
+    "num_tokens": 128,
+    "mean_nll": 2.832834497071204,
+    "perplexity": 16.99356082106357,
+    "search_ms_per_token": 722.7747285348669,
+    "decode_ms_per_token": 1111.4115322416183,
+    "topk_recall_vs_full": null,
+    "attention_mass_recall": null,
+    "prepack_ms": 0.0,
+    "cache_update_ms_per_token": 28.99810459348373
+  },
+  {
+    "context": "64k",
+    "method": "fier",
+    "raw_method": "fier_triton_g32_b4096",
+    "num_tokens": 128,
+    "mean_nll": 2.7416820686624988,
+    "perplexity": 15.513057190025684,
+    "search_ms_per_token": 177.1925086659612,
+    "decode_ms_per_token": 846.4643844345119,
+    "topk_recall_vs_full": 0.6096490621566772,
+    "attention_mass_recall": 0.9752727069262619,
+    "prepack_ms": 0.0,
+    "cache_update_ms_per_token": 29.00911431061104
+  },
+  {
+    "context": "64k",
+    "method": "cuda_popc",
+    "raw_method": "bit2_qk_cuda_popc_g32_b4096",
+    "num_tokens": 128,
+    "mean_nll": 3.2269621635796284,
+    "perplexity": 25.202978036321134,
+    "search_ms_per_token": 8.72453351265358,
+    "decode_ms_per_token": 740.1815363846254,
+    "topk_recall_vs_full": 0.28265637159347534,
+    "attention_mass_recall": 0.9239901880782782,
+    "prepack_ms": 452.6405818760395,
+    "cache_update_ms_per_token": 29.189988534199074
+  },
+  {
+    "context": "64k",
+    "method": "qk_2mean",
+    "raw_method": "bit2_qk_2mean_g32_b4096",
+    "num_tokens": 128,
+    "mean_nll": 2.759269950887983,
+    "perplexity": 15.78831249635622,
+    "search_ms_per_token": 10.590110726374405,
+    "decode_ms_per_token": 752.361038030358,
+    "topk_recall_vs_full": 0.43346989154815674,
+    "attention_mass_recall": 0.9629341129038949,
+    "prepack_ms": 454.45379987359047,
+    "cache_update_ms_per_token": 29.298956418642774
+  }
+]

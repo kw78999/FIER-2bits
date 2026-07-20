@@ -163,9 +163,30 @@ class PackedBit2HeadCache:
 
 
 @dataclass
+class PackedBit2MeanLayerCache:
+    group_size: int
+    token_count: int
+    sealed_tokens: int
+    packed: tuple[torch.Tensor, torch.Tensor, torch.Tensor, torch.Tensor]
+    active_keys: torch.Tensor
+
+
+@dataclass
+class PackedBit2CudaLayerCache:
+    group_size: int
+    token_count: int
+    sealed_tokens: int
+    packed: tuple[torch.Tensor, torch.Tensor]
+    active_keys: torch.Tensor
+
+
+@dataclass
 class PackedRetrievalCaches:
     method: str
-    caches: dict[tuple[int, int], PackedFIERHeadCache | PackedBit2HeadCache]
+    caches: dict[
+        tuple[int, int],
+        PackedFIERHeadCache | PackedBit2HeadCache | PackedBit2MeanLayerCache | PackedBit2CudaLayerCache,
+    ]
 
 
 @dataclass(frozen=True)
@@ -199,9 +220,24 @@ class RetrievalConfig:
             raise ValueError("fier_backend must be reference or triton")
         if self.bit2_group_size <= 0:
             raise ValueError("bit2_group_size must be positive")
-        if self.bit2_backend not in {"reference", "cuda_popc", "cuda_popc_histogram"}:
+        if self.bit2_backend not in {
+            "reference",
+            "cuda_popc",
+            "cuda_popc_direct",
+            "cuda_popc_histogram",
+            "group_mean4",
+            "group_mean2",
+            "cuda_2mean",
+            "triton_2mean",
+            "2mean",
+            "qk_2mean",
+            "cuda_qk_2mean",
+            "triton_qk_2mean",
+        }:
             raise ValueError(
-                "bit2_backend must be reference, cuda_popc, or cuda_popc_histogram"
+                "bit2_backend must be reference, cuda_popc, cuda_popc_direct, cuda_popc_histogram, "
+                "group_mean4, group_mean2, 2mean, cuda_2mean, triton_2mean, "
+                "qk_2mean, cuda_qk_2mean, or triton_qk_2mean"
             )
 
 
@@ -576,18 +612,40 @@ def select_bit2_qk(
             bit2_approximate_scores(query, keys, group_size=group_size), budget
         )
         return _include_current(indices, keys.shape[0], min(budget, keys.shape[0]))
-    if backend in {"cuda_popc", "cuda_popc_histogram"}:
+    if backend in {
+        "cuda_popc",
+        "cuda_popc_histogram",
+        "group_mean4",
+        "group_mean2",
+    }:
         if not query.is_cuda or not keys.is_cuda:
             raise RuntimeError(f"{backend} requires CUDA query and keys")
-        from bit2_cuda import histogram_topk_from_scores, score_tensors
+        from bit2_cuda import (
+            histogram_topk_from_scores,
+            score_group_mean_tensors,
+            score_tensors,
+        )
 
-        scores = score_tensors(
-            query.view(1, 1, -1),
-            keys.view(1, keys.shape[0], keys.shape[1]),
-            head_to_kv=torch.zeros(1, device=query.device, dtype=torch.long),
-            valid_tokens=torch.tensor([keys.shape[0]], device=query.device, dtype=torch.long),
-            group_size=group_size,
-        )[0, 0]
+        score_args = {
+            "head_to_kv": torch.zeros(1, device=query.device, dtype=torch.long),
+            "valid_tokens": torch.tensor(
+                [keys.shape[0]], device=query.device, dtype=torch.long
+            ),
+            "group_size": group_size,
+        }
+        if backend in {"group_mean4", "group_mean2"}:
+            scores = score_group_mean_tensors(
+                query.view(1, 1, -1),
+                keys.view(1, keys.shape[0], keys.shape[1]),
+                mean_mode="signed4" if backend == "group_mean4" else "abs2",
+                **score_args,
+            )[0, 0]
+        else:
+            scores = score_tensors(
+                query.view(1, 1, -1),
+                keys.view(1, keys.shape[0], keys.shape[1]),
+                **score_args,
+            )[0, 0]
         if backend == "cuda_popc_histogram":
             indices = histogram_topk_from_scores(
                 scores.view(1, 1, -1),
@@ -700,6 +758,85 @@ def _seal_bit2_active(cache: PackedBit2HeadCache) -> None:
 def append_packed_bit2_head_cache(cache: PackedBit2HeadCache, key: torch.Tensor) -> None:
     cache.active_keys = torch.cat([cache.active_keys, key.view(1, -1).detach()], dim=0)
     _seal_bit2_active(cache)
+
+
+def build_packed_bit2mean_layer_cache(
+    keys: torch.Tensor, *, group_size: int, reserve_tokens: int = 2048
+) -> PackedBit2MeanLayerCache:
+    """Build persistent [KVH,T,D] 2-mean storage with append capacity."""
+    from bit2_cuda import pack_keys_2mean
+
+    if keys.ndim != 3 or not keys.is_cuda:
+        raise ValueError("Expected CUDA keys shaped [KVH, tokens, head_dim]")
+    tokens = int(keys.shape[1])
+    capacity = ((tokens + reserve_tokens + group_size - 1) // group_size) * group_size
+    packed = pack_keys_2mean(
+        keys.contiguous(), group_size=group_size, token_capacity=capacity
+    )
+    sealed = (tokens // group_size) * group_size
+    return PackedBit2MeanLayerCache(
+        group_size=group_size,
+        token_count=tokens,
+        sealed_tokens=sealed,
+        packed=packed,
+        active_keys=keys[:, sealed:].detach().clone().contiguous(),
+    )
+
+
+def append_packed_bit2mean_layer_cache(
+    cache: PackedBit2MeanLayerCache, keys: torch.Tensor
+) -> None:
+    """Repack only the active token-axis group directly into cache storage."""
+    from bit2_cuda import pack_keys_2mean_into
+
+    if keys.ndim != 3 or int(keys.shape[1]) != 1:
+        raise ValueError("new keys must be [KVH, 1, D]")
+    cache.active_keys = torch.cat(
+        [cache.active_keys, keys.detach()], dim=1
+    ).contiguous()
+    if cache.sealed_tokens + int(cache.active_keys.shape[1]) > int(cache.packed[0].shape[1]):
+        raise RuntimeError("2-mean cache reserve exhausted")
+    pack_keys_2mean_into(
+        cache.active_keys,
+        cache.packed,
+        group_size=cache.group_size,
+        token_offset=cache.sealed_tokens,
+    )
+    cache.token_count += 1
+    if int(cache.active_keys.shape[1]) == cache.group_size:
+        cache.sealed_tokens += cache.group_size
+        cache.active_keys = cache.active_keys[:, :0].contiguous()
+
+
+def build_packed_bit2cuda_layer_cache(
+    keys: torch.Tensor, *, group_size: int, reserve_tokens: int = 2048
+) -> PackedBit2CudaLayerCache:
+    from bit2_cuda import pack_keys_cached
+    tokens = int(keys.shape[1])
+    capacity = ((tokens + reserve_tokens + group_size - 1) // group_size) * group_size
+    packed = pack_keys_cached(keys.contiguous(), group_size=group_size, token_capacity=capacity)
+    sealed = (tokens // group_size) * group_size
+    return PackedBit2CudaLayerCache(
+        group_size, tokens, sealed, packed,
+        keys[:, sealed:].detach().clone().contiguous(),
+    )
+
+
+def append_packed_bit2cuda_layer_cache(
+    cache: PackedBit2CudaLayerCache, keys: torch.Tensor
+) -> None:
+    from bit2_cuda import pack_keys_cached_into
+    cache.active_keys = torch.cat([cache.active_keys, keys.detach()], dim=1).contiguous()
+    if cache.sealed_tokens + int(cache.active_keys.shape[1]) > int(cache.packed[0].shape[1]):
+        raise RuntimeError("persistent cuda_popc cache reserve exhausted")
+    pack_keys_cached_into(
+        cache.active_keys, cache.packed,
+        group_size=cache.group_size, token_offset=cache.sealed_tokens,
+    )
+    cache.token_count += 1
+    if int(cache.active_keys.shape[1]) == cache.group_size:
+        cache.sealed_tokens += cache.group_size
+        cache.active_keys = cache.active_keys[:, :0].contiguous()
 
 
 def select_bit2_prepacked(
@@ -901,6 +1038,11 @@ class DecodeDiagnostics:
     selected_attention_ms: float = 0.0
     topk_recall_sum: float = 0.0
     topk_recall_calls: int = 0
+    attention_mass_recall_sum: float = 0.0
+    score_mae_sum: float = 0.0
+    score_normalized_mae_sum: float = 0.0
+    spearman_sum: float = 0.0
+    score_diagnostic_calls: int = 0
 
     @property
     def candidate_ratio(self) -> float:
@@ -913,6 +1055,22 @@ class DecodeDiagnostics:
         if self.topk_recall_calls == 0:
             return None
         return self.topk_recall_sum / self.topk_recall_calls
+
+    @property
+    def attention_mass_recall(self) -> float | None:
+        return None if not self.topk_recall_calls else self.attention_mass_recall_sum / self.topk_recall_calls
+
+    @property
+    def score_mae(self) -> float | None:
+        return None if not self.score_diagnostic_calls else self.score_mae_sum / self.score_diagnostic_calls
+
+    @property
+    def score_normalized_mae(self) -> float | None:
+        return None if not self.score_diagnostic_calls else self.score_normalized_mae_sum / self.score_diagnostic_calls
+
+    @property
+    def spearman(self) -> float | None:
+        return None if not self.score_diagnostic_calls else self.spearman_sum / self.score_diagnostic_calls
 
 
 def _timed_component(
@@ -1021,6 +1179,13 @@ class LlamaSparseDecoder:
                 int(self.config.hidden_size) // self.num_heads,
             )
         )
+        self.head_to_kv = (
+            torch.arange(self.num_heads, device=self.device, dtype=torch.long)
+            // self.kv_group_size
+        )
+        self.diagnostic_layer = next(
+            (i for i in range(len(self.layers)) if i not in retrieval.full_layers), 0
+        )
 
     @property
     def device(self) -> torch.device:
@@ -1045,10 +1210,26 @@ class LlamaSparseDecoder:
     ) -> PackedRetrievalCaches:
         if method not in {"fier", "bit2_qk"}:
             raise ValueError("Packed retrieval caches are only implemented for FIER/bit2")
-        caches: dict[tuple[int, int], PackedFIERHeadCache | PackedBit2HeadCache] = {}
+        caches: dict[
+            tuple[int, int],
+            PackedFIERHeadCache | PackedBit2HeadCache | PackedBit2MeanLayerCache | PackedBit2CudaLayerCache,
+        ] = {}
         for layer_idx in range(len(self.layers)):
             keys, _ = _layer_cache(past_key_values, layer_idx)
             keys = keys.to(self.device)
+            if method == "bit2_qk" and self.retrieval.bit2_backend == "cuda_popc":
+                caches[(layer_idx, -1)] = build_packed_bit2cuda_layer_cache(
+                    keys[0], group_size=group_size
+                )
+                continue
+            if method == "bit2_qk" and self.retrieval.bit2_backend in {
+                "2mean", "cuda_2mean", "triton_2mean",
+                "qk_2mean", "cuda_qk_2mean", "triton_qk_2mean",
+            }:
+                caches[(layer_idx, -1)] = build_packed_bit2mean_layer_cache(
+                    keys[0], group_size=group_size
+                )
+                continue
             for kv_head_idx in range(self.num_kv_heads):
                 head_keys = keys[0, kv_head_idx]
                 if method == "fier":
@@ -1069,6 +1250,13 @@ class LlamaSparseDecoder:
         new_keys_by_layer: Sequence[torch.Tensor],
     ) -> None:
         for layer_idx, key_states in enumerate(new_keys_by_layer):
+            layer_cache = packed.caches.get((layer_idx, -1))
+            if isinstance(layer_cache, PackedBit2CudaLayerCache):
+                append_packed_bit2cuda_layer_cache(layer_cache, key_states[0])
+                continue
+            if isinstance(layer_cache, PackedBit2MeanLayerCache):
+                append_packed_bit2mean_layer_cache(layer_cache, key_states[0])
+                continue
             for kv_head_idx in range(self.num_kv_heads):
                 cache = packed.caches[(layer_idx, kv_head_idx)]
                 key = key_states[0, kv_head_idx, 0]
@@ -1204,9 +1392,7 @@ class LlamaSparseDecoder:
                     from fier_triton import score_tensors
 
                     layer_keys = torch.cat([prefix_keys[0], key_states[0]], dim=1)
-                    head_to_kv = torch.arange(
-                        self.num_heads, device=query_states.device, dtype=torch.long
-                    ) // self.kv_group_size
+                    head_to_kv = self.head_to_kv
                     scores = score_tensors(
                         query_states[0, :, 0, :].unsqueeze(0),
                         layer_keys.contiguous(),
@@ -1226,48 +1412,151 @@ class LlamaSparseDecoder:
                 diagnostics.candidate_search_ms += candidate_cpu_ms
 
             batched_bit2_indices = None
+            batched_bit2_scores = None
             if (
                 method == "bit2_qk"
                 and self.retrieval.bit2_backend
-                in {"cuda_popc", "cuda_popc_histogram"}
+                in {
+                    "cuda_popc",
+                    "cuda_popc_direct",
+                    "cuda_popc_histogram",
+                    "group_mean4",
+                    "group_mean2",
+                    "cuda_2mean",
+                    "triton_2mean",
+                    "2mean",
+                    "qk_2mean",
+                    "cuda_qk_2mean",
+                    "triton_qk_2mean",
+                }
                 and not force_full
             ):
-                if retrieval_caches is not None:
+                is_cached_2mean = (
+                    retrieval_caches is not None
+                    and self.retrieval.bit2_backend in {
+                        "2mean", "cuda_2mean", "triton_2mean",
+                        "qk_2mean", "cuda_qk_2mean", "triton_qk_2mean",
+                    }
+                )
+                is_cached_cuda_popc = (
+                    retrieval_caches is not None
+                    and self.retrieval.bit2_backend == "cuda_popc"
+                )
+                if retrieval_caches is not None and not (is_cached_2mean or is_cached_cuda_popc):
                     raise RuntimeError(
                         "cuda_popc backends currently use the direct packed CUDA path, "
                         "not prepacked retrieval_caches"
                     )
 
                 def select_all_bit2_heads() -> torch.Tensor:
-                    from bit2_cuda import histogram_topk_from_scores, score_tensors
+                    from bit2_cuda import (
+                        histogram_topk_from_scores,
+                        score_group_mean_tensors,
+                        score_tensors,
+                    )
 
+                    head_to_kv = self.head_to_kv
+                    if is_cached_cuda_popc:
+                        cache = retrieval_caches.caches[(layer_idx, -1)]
+                        if not isinstance(cache, PackedBit2CudaLayerCache):
+                            raise TypeError("persistent cuda_popc layer cache mismatch")
+                        from bit2_cuda import score_popc_cached_cuda_packed
+                        scores = score_popc_cached_cuda_packed(
+                            query_states[0, :, 0, :].unsqueeze(0).contiguous(),
+                            cache.packed, head_to_kv=head_to_kv,
+                            tokens=cache.token_count,
+                        )
+                        # Current token is appended by _include_current below, so
+                        # reserve one budget slot instead of dropping an arbitrary
+                        # unsorted Top-k entry afterward.
+                        topk_budget = min(self.retrieval.budget - 1, cache.token_count)
+                        indices = torch.topk(
+                            scores, k=topk_budget, dim=-1, largest=True, sorted=False
+                        ).indices[0]
+                        return indices, scores[0]
+                    if is_cached_2mean:
+                        cache = retrieval_caches.caches[(layer_idx, -1)]
+                        if not isinstance(cache, PackedBit2MeanLayerCache):
+                            raise TypeError("2-mean layer cache mismatch")
+                        if self.retrieval.bit2_backend in {"2mean", "cuda_2mean"}:
+                            from bit2_cuda import score_2mean_cuda_packed
+                            scores = score_2mean_cuda_packed(
+                                query_states[0, :, 0, :].unsqueeze(0).contiguous(),
+                                cache.packed,
+                                head_to_kv=head_to_kv,
+                                tokens=cache.token_count,
+                            )
+                        elif self.retrieval.bit2_backend == "triton_2mean":
+                            from bit2_2mean_triton import score_2mean_triton_packed
+                            scores = score_2mean_triton_packed(
+                                query_states[0, :, 0, :].unsqueeze(0),
+                                cache.packed,
+                                head_to_kv=head_to_kv,
+                                tokens=cache.token_count,
+                            )
+                        elif self.retrieval.bit2_backend in {"qk_2mean", "cuda_qk_2mean"}:
+                            from bit2_cuda import score_qk_2mean_cuda_packed
+                            scores = score_qk_2mean_cuda_packed(
+                                query_states[0, :, 0, :].unsqueeze(0).contiguous(),
+                                cache.packed, head_to_kv=head_to_kv,
+                                tokens=cache.token_count,
+                            )
+                        else:  # triton_qk_2mean
+                            from bit2_2mean_triton import score_qk_2mean_triton_packed
+                            scores = score_qk_2mean_triton_packed(
+                                query_states[0, :, 0, :].unsqueeze(0),
+                                cache.packed, head_to_kv=head_to_kv,
+                                tokens=cache.token_count,
+                            )
+                        topk_budget = min(self.retrieval.budget - 1, cache.token_count)
+                        indices = torch.topk(
+                            scores, k=topk_budget, dim=-1, largest=True, sorted=False
+                        ).indices[0]
+                        return indices, scores[0]
                     layer_keys = torch.cat([prefix_keys[0], key_states[0]], dim=1)
-                    head_to_kv = torch.arange(
-                        self.num_heads, device=query_states.device, dtype=torch.long
-                    ) // self.kv_group_size
                     valid_tokens = torch.tensor(
                         [layer_keys.shape[1]], device=query_states.device, dtype=torch.long
                     )
-                    scores = score_tensors(
-                        query_states[0, :, 0, :].unsqueeze(0),
-                        layer_keys,
-                        head_to_kv=head_to_kv,
-                        valid_tokens=valid_tokens,
-                        group_size=self.retrieval.bit2_group_size,
-                    )
+                    score_args = {
+                        "head_to_kv": head_to_kv,
+                        "valid_tokens": valid_tokens,
+                        "group_size": self.retrieval.bit2_group_size,
+                    }
+                    if self.retrieval.bit2_backend in {
+                        "group_mean4",
+                        "group_mean2",
+                    }:
+                        scores = score_group_mean_tensors(
+                            query_states[0, :, 0, :].unsqueeze(0),
+                            layer_keys,
+                            mean_mode=(
+                                "signed4"
+                                if self.retrieval.bit2_backend == "group_mean4"
+                                else "abs2"
+                            ),
+                            **score_args,
+                        )
+                    else:
+                        scores = score_tensors(
+                            query_states[0, :, 0, :].unsqueeze(0),
+                            layer_keys,
+                            **score_args,
+                        )
                     topk_budget = min(self.retrieval.budget, int(layer_keys.shape[1]))
                     if self.retrieval.bit2_backend == "cuda_popc_histogram":
-                        return histogram_topk_from_scores(
+                        indices = histogram_topk_from_scores(
                             scores,
                             valid_tokens,
                             budget=topk_budget,
                             head_dim=self.head_dim,
                         )[0]
-                    return torch.topk(
+                        return indices, scores[0]
+                    indices = torch.topk(
                         scores, k=topk_budget, dim=-1, largest=True, sorted=False
                     ).indices[0]
+                    return indices, scores[0]
 
-                batched_bit2_indices, candidate_cpu_ms = _timed_component(
+                (batched_bit2_indices, batched_bit2_scores), candidate_cpu_ms = _timed_component(
                     select_all_bit2_heads,
                     device=query_states.device,
                     cuda_events=candidate_events,
@@ -1354,11 +1643,37 @@ class LlamaSparseDecoder:
                     diagnostics.selected_tokens += int(indices.numel())
                     diagnostics.available_tokens += int(keys.shape[0])
                     diagnostics.sparse_head_calls += 1
-                    if self.retrieval.measure_topk_recall and active_method in {"fier", "bit2_qk"}:
+                    if (
+                        self.retrieval.measure_topk_recall
+                        and active_method in {"fier", "bit2_qk"}
+                        and layer_idx == self.diagnostic_layer
+                    ):
                         recall_k = min(self.retrieval.budget, int(keys.shape[0]))
-                        exact_topk = _topk_indices(keys.float() @ query.float(), recall_k)
+                        exact_scores = (keys.float() @ query.float()) / math.sqrt(self.head_dim)
+                        exact_topk = _topk_indices(exact_scores, recall_k)
                         diagnostics.topk_recall_sum += float(torch.isin(indices, exact_topk).sum().item() / recall_k)
+                        diagnostics.attention_mass_recall_sum += float(
+                            torch.softmax(exact_scores, dim=0).index_select(0, indices).sum().item()
+                        )
                         diagnostics.topk_recall_calls += 1
+                        if active_method == "bit2_qk" and batched_bit2_scores is not None:
+                            approx = batched_bit2_scores[head_idx].float()
+                            exact_for_score = exact_scores[: approx.numel()]
+                            raw_mae = (approx - exact_for_score).abs().mean()
+                            approx_norm = (approx - approx.mean()) / approx.std().clamp_min(1e-6)
+                            exact_norm = (exact_for_score - exact_for_score.mean()) / exact_for_score.std().clamp_min(1e-6)
+                            norm_mae = (approx_norm - exact_norm).abs().mean()
+                            approx_rank = torch.argsort(torch.argsort(approx)).float()
+                            exact_rank = torch.argsort(torch.argsort(exact_for_score)).float()
+                            approx_rank = approx_rank - approx_rank.mean()
+                            exact_rank = exact_rank - exact_rank.mean()
+                            spearman = (approx_rank * exact_rank).sum() / (
+                                approx_rank.square().sum().sqrt() * exact_rank.square().sum().sqrt()
+                            ).clamp_min(1e-12)
+                            diagnostics.score_mae_sum += float(raw_mae.item())
+                            diagnostics.score_normalized_mae_sum += float(norm_mae.item())
+                            diagnostics.spearman_sum += float(spearman.item())
+                            diagnostics.score_diagnostic_calls += 1
                 head_output, attention_cpu_ms = _timed_component(
                     lambda: exact_attention(query, keys, values, indices),
                     device=query.device,

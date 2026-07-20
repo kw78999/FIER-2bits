@@ -5,7 +5,9 @@ Experimental long-context sparse-attention evaluation code for comparing:
 - full attention;
 - Quest page retrieval;
 - FIER 1-bit retrieval with a PyTorch reference or Triton scorer;
-- 2-bit sign/magnitude retrieval with a PyTorch reference or CUDA POPC scorer.
+- 2-bit sign/magnitude retrieval with a PyTorch reference or CUDA POPC scorer;
+- weighted K 2-mean retrieval with persistent packed cache and fused CUDA or
+  Triton scoring.
 
 Selected KV entries always use the original FP16/BF16 key and value tensors for
 the final attention computation. The first two transformer layers are dense by
@@ -75,12 +77,23 @@ keeps the tokenized prompt identical across methods for each sample.
 Detailed WikiText-2 semantics and options are in
 [README_PPL.md](README_PPL.md).
 
+The baseline `cuda_popc` backend now uses a persistent sign/magnitude cache and
+fused raw-Q scorer; `cuda_popc_direct` preserves the historical full-K repack
+path. The optimized weighted backend is selected with `--bit2-backend 2mean` (CUDA,
+the default optimized path). `cuda_2mean` is its explicit alias and
+`triton_2mean` selects the comparison kernel. Existing `cuda_popc` behavior is
+unchanged. K stores uint32 sign/magnitude words and FP16 low/delta means for
+each token, KV head, and 32-channel word. The final selected attention still
+uses the original K/V cache.
+
 ## Implementation
 
 - `fier_triton.py`: group-wise 1-bit packing and fused Triton QK scoring.
-- `bit2_cuda.py`: Python wrapper for 2-bit packing, CUDA POPC scoring, and
-  histogram top-k.
-- `csrc/bit2_popc_ext.cu`: CUDA kernels for the 2-bit backend.
+- `bit2_cuda.py`: FP32 2-mean references and Python wrappers for packed CUDA
+  scoring.
+- `bit2_2mean_triton.py`: fused weighted-popcount Triton comparison scorer.
+- `csrc/bit2_popc_ext.cu`: baseline POPC plus group-32 warp packing,
+  incremental cache update, and fused weighted 2-mean CUDA scoring.
 - `sparse_ppl.py`: shared quantization, retrieval, exact selected attention,
   and Llama decoding logic.
 

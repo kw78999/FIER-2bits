@@ -1,0 +1,22 @@
+[
+  {
+    "method": "bit2_qk_2mean_g32_b4096",
+    "num_tokens": 128,
+    "mean_nll": 1.9119281233398624,
+    "perplexity": 6.766122147574345,
+    "mean_candidate_ratio": 0.12475839324736661,
+    "mean_prepack_ms": 410.1908206939697,
+    "mean_decode_ms_per_token": 671.9817972334567,
+    "mean_candidate_search_ms_per_token": 5.888441204568153,
+    "mean_cache_update_ms_per_token": 14.88469389732927,
+    "mean_selected_attention_ms_per_token": 156.9924292533542,
+    "mean_candidate_search_ops_proxy": 6714122400.0,
+    "mean_topk_recall": 0.44690072536468506,
+    "mean_attention_mass_recall": 0.9665813141473336,
+    "mean_score_mae": 7.6396874887286685,
+    "mean_score_normalized_mae": 0.6644288779934868,
+    "mean_spearman_correlation": 0.6333086411505064,
+    "metadata_bytes_per_token": 16,
+    "packed_k_bytes_per_token": 48
+  }
+]

@@ -1,0 +1,44 @@
+[
+  {
+    "method": "bit2_qk_cuda_popc_g64_b4096",
+    "num_tokens": 512,
+    "mean_nll": 2.0984417343735515,
+    "perplexity": 8.153454760058606,
+    "mean_candidate_ratio": 0.2490360645511164,
+    "mean_prepack_ms": 0.0,
+    "mean_decode_ms_per_token": 571.6610114177456,
+    "mean_candidate_search_ms_per_token": 28.64707192383912,
+    "mean_cache_update_ms_per_token": 7.4495506851235405,
+    "mean_selected_attention_ms_per_token": 144.93594240750826,
+    "mean_candidate_search_ops_proxy": 15490334880.0,
+    "mean_topk_recall": null
+  },
+  {
+    "method": "bit2_qk_group_mean2_g64_b4096",
+    "num_tokens": 512,
+    "mean_nll": 2.072061498938652,
+    "perplexity": 7.941176983242323,
+    "mean_candidate_ratio": 0.2490360645511164,
+    "mean_prepack_ms": 0.0,
+    "mean_decode_ms_per_token": 707.8602127294289,
+    "mean_candidate_search_ms_per_token": 169.41948635580866,
+    "mean_cache_update_ms_per_token": 7.486791757401079,
+    "mean_selected_attention_ms_per_token": 144.0546960321808,
+    "mean_candidate_search_ops_proxy": 15490334880.0,
+    "mean_topk_recall": null
+  },
+  {
+    "method": "bit2_qk_group_mean4_g64_b4096",
+    "num_tokens": 512,
+    "mean_nll": 2.0723658462908965,
+    "perplexity": 7.943594227253127,
+    "mean_candidate_ratio": 0.2490360645511164,
+    "mean_prepack_ms": 0.0,
+    "mean_decode_ms_per_token": 825.2877191844163,
+    "mean_candidate_search_ms_per_token": 285.4162675472644,
+    "mean_cache_update_ms_per_token": 7.489877811167389,
+    "mean_selected_attention_ms_per_token": 144.298739967664,
+    "mean_candidate_search_ops_proxy": 15490334880.0,
+    "mean_topk_recall": null
+  }
+]

@@ -1,0 +1,22 @@
+[
+  {
+    "method": "full",
+    "num_tokens": 128,
+    "mean_nll": 2.737371389439403,
+    "perplexity": 15.446329301299565,
+    "mean_candidate_ratio": 1.0,
+    "mean_prepack_ms": 0.0,
+    "mean_decode_ms_per_token": 659.0167485119309,
+    "mean_candidate_search_ms_per_token": 5.042248164023476,
+    "mean_cache_update_ms_per_token": 29.05057158204727,
+    "mean_selected_attention_ms_per_token": 497.261391607346,
+    "mean_candidate_search_ops_proxy": 0.0,
+    "mean_topk_recall": null,
+    "mean_attention_mass_recall": null,
+    "mean_score_mae": null,
+    "mean_score_normalized_mae": null,
+    "mean_spearman_correlation": null,
+    "metadata_bytes_per_token": 0,
+    "packed_k_bytes_per_token": null
+  }
+]

@@ -1,0 +1,75 @@
+{
+  "configuration": {
+    "contexts": [
+      16384,
+      32768,
+      65536
+    ],
+    "group_size": 32,
+    "budget": 4096,
+    "blocks": 1,
+    "tokens_per_block": 128,
+    "dtype": "float16",
+    "attention": "sdpa",
+    "seed": 42
+  },
+  "independence": "Each context/method ran in a separate Python/CUDA process; GPU compute processes were checked before every run.",
+  "recall_note": "Full Attention has no sparse selection. The current evaluator only computes exact Top-k recall for FIER and bit2_qk, so Quest recall is unavailable.",
+  "aggregate": [
+    {
+      "method": "full",
+      "contexts": 3,
+      "total_tokens": 384,
+      "pooled_mean_nll": 2.122355534057457,
+      "pooled_perplexity": 8.35078489676337,
+      "mean_search_ms_per_token": 12.897799134539431,
+      "mean_decode_ms_per_token": 448.42223851204227,
+      "mean_topk_recall_vs_full": null,
+      "mean_attention_mass_recall": null
+    },
+    {
+      "method": "quest",
+      "contexts": 3,
+      "total_tokens": 384,
+      "pooled_mean_nll": 2.2185058683354413,
+      "pooled_perplexity": 9.193584173531006,
+      "mean_search_ms_per_token": 627.1711298755157,
+      "mean_decode_ms_per_token": 961.8781908454063,
+      "mean_topk_recall_vs_full": null,
+      "mean_attention_mass_recall": null
+    },
+    {
+      "method": "fier",
+      "contexts": 3,
+      "total_tokens": 384,
+      "pooled_mean_nll": 2.120953136587199,
+      "pooled_perplexity": 8.339081985134339,
+      "mean_search_ms_per_token": 90.99031406503916,
+      "mean_decode_ms_per_token": 705.622026269945,
+      "mean_topk_recall_vs_full": 0.6607577602068583,
+      "mean_attention_mass_recall": 0.9817224239177449
+    },
+    {
+      "method": "cuda_popc",
+      "contexts": 3,
+      "total_tokens": 384,
+      "pooled_mean_nll": 2.321756955955967,
+      "pooled_perplexity": 10.193568232468595,
+      "mean_search_ms_per_token": 6.19684433373853,
+      "mean_decode_ms_per_token": 681.8902141919049,
+      "mean_topk_recall_vs_full": 0.37927589813868207,
+      "mean_attention_mass_recall": 0.9416645888014349
+    },
+    {
+      "method": "qk_2mean",
+      "contexts": 3,
+      "total_tokens": 384,
+      "pooled_mean_nll": 2.132349678103452,
+      "pooled_perplexity": 8.434662287120767,
+      "mean_search_ms_per_token": 7.297742999258237,
+      "mean_decode_ms_per_token": 690.9362079556255,
+      "mean_topk_recall_vs_full": 0.49052560329437256,
+      "mean_attention_mass_recall": 0.9693248864302101
+    }
+  ]
+}

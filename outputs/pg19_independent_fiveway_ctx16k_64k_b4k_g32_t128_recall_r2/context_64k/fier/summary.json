@@ -1,0 +1,22 @@
+[
+  {
+    "method": "fier_triton_g32_b4096",
+    "num_tokens": 128,
+    "mean_nll": 2.7416820686624988,
+    "perplexity": 15.513057190025684,
+    "mean_candidate_ratio": 0.06243952011044528,
+    "mean_prepack_ms": 0.0,
+    "mean_decode_ms_per_token": 846.4643844345119,
+    "mean_candidate_search_ms_per_token": 177.1925086659612,
+    "mean_cache_update_ms_per_token": 29.00911431061104,
+    "mean_selected_attention_ms_per_token": 168.11843113251962,
+    "mean_candidate_search_ops_proxy": 49120905600.0,
+    "mean_topk_recall": 0.6096490621566772,
+    "mean_attention_mass_recall": 0.9752727069262619,
+    "mean_score_mae": null,
+    "mean_score_normalized_mae": null,
+    "mean_spearman_correlation": null,
+    "metadata_bytes_per_token": 0,
+    "packed_k_bytes_per_token": null
+  }
+]
