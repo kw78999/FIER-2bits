@@ -1,0 +1,29 @@
+python=3.11.10 (main, Sep  7 2024, 18:35:41) [GCC 11.4.0]
+platform=Linux-5.15.0-139-generic-x86_64-with-glibc2.35
+torch=2.4.1+cu124
+transformers=4.57.6
+$ git rev-parse HEAD
+2820a42c1d751bc9064629be5a1b65c6a43d4a92
+$ git status --short
+M fier_triton.py
+ M run_prepacked_long_context.py
+ M sparse_ppl.py
+?? .patch_probe
+?? logs/
+?? outputs/pg19_fair_latency_fier_qk2mean_ctx32k_b4096_g32_t256_r2/
+?? outputs/pg19_final_fourway_ctx32k64k_b4096_g32_t256_512_r1/
+?? outputs/pg19_final_fourway_ctx32k_b4096_g32_t512_r1/
+?? outputs/pg19_final_fourway_ctx64k_b4096_g32_t512_r1/
+?? outputs/pg19_final_recall_no_scorediag_ctx32k64k_b4096_g32_t32_64_128_256_512_r1/
+?? outputs/pg19_final_recall_no_scorediag_ctx32k_b4096_g32_t512_r1/
+?? outputs/pg19_final_recall_no_scorediag_ctx64k_b4096_g32_t512_r1/
+?? outputs/pg19_optimized_batched_current_final_ctx32k_b4096_g32_t32_64_128_256_blocks2_r2/
+?? outputs/pg19_optimized_batched_current_latency_ctx32k_b4096_g32_t256_blocks2_r2/
+?? outputs/pg19_optimized_batched_current_recall_curve_ctx32k_b4096_g32_t256_blocks2_r2/
+?? outputs/pg19_optimized_final_ctx32k_b4096_g32_t32_64_128_256_blocks2_r1/
+?? outputs/pg19_optimized_latency_ctx32k_b4096_g32_t256_blocks2_r1/
+?? outputs/pg19_optimized_recall_ctx32k_b4096_g32_t256_blocks2_r1/
+?? results/
+?? run_longbench_quality.py
+$ nvidia-smi --query-gpu=name,driver_version,memory.total --format=csv,noheader
+NVIDIA RTX A6000, 550.127.08, 49140 MiB

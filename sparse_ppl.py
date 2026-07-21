@@ -181,11 +181,30 @@ class PackedBit2CudaLayerCache:
 
 
 @dataclass
+class PackedFIERTritonLayerCache:
+    group_size: int
+    token_count: int
+    sealed_tokens: int
+    packed: torch.Tensor
+    group_min: torch.Tensor
+    group_max: torch.Tensor
+    active_keys: torch.Tensor
+
+
+@dataclass
+class StaticKVCache:
+    key_storage: list[torch.Tensor]
+    value_storage: list[torch.Tensor]
+    length: int
+    capacity: int
+
+
+@dataclass
 class PackedRetrievalCaches:
     method: str
     caches: dict[
         tuple[int, int],
-        PackedFIERHeadCache | PackedBit2HeadCache | PackedBit2MeanLayerCache | PackedBit2CudaLayerCache,
+        PackedFIERHeadCache | PackedFIERTritonLayerCache | PackedBit2HeadCache | PackedBit2MeanLayerCache | PackedBit2CudaLayerCache,
     ]
 
 
@@ -202,6 +221,7 @@ class RetrievalConfig:
     bit2_backend: str = "reference"
     full_layers: tuple[int, ...] = (0, 1)
     measure_topk_recall: bool = False
+    measure_score_diagnostics: bool = False
 
     def validate(self) -> None:
         if self.budget <= 0:
@@ -266,6 +286,15 @@ def _include_current(indices: torch.Tensor, num_tokens: int, max_tokens: int | N
             keep[-1] = current
         indices = keep
     return torch.sort(torch.unique(indices)).values
+
+
+def _append_current_reserved(indices: torch.Tensor, num_tokens: int) -> torch.Tensor:
+    """Append current token when Top-k already reserved exactly one slot."""
+    current = torch.full(
+        (*indices.shape[:-1], 1), num_tokens - 1,
+        device=indices.device, dtype=torch.long,
+    )
+    return torch.cat([indices.to(dtype=torch.long), current], dim=-1)
 
 
 def select_full(keys: torch.Tensor) -> torch.Tensor:
@@ -353,6 +382,39 @@ def quest_page_scores(
     page_max = pages.amax(dim=1)
     query32 = query.float().unsqueeze(0)
     return torch.maximum(query32 * page_min, query32 * page_max).sum(dim=-1)
+
+
+def quest_page_scores_batched(
+    queries: torch.Tensor, prefix_keys: torch.Tensor, current_keys: torch.Tensor,
+    *, head_to_kv: torch.Tensor, page_size: int,
+) -> torch.Tensor:
+    """Quest page bounds for every Q head, computing page metadata once per KV head."""
+    keys32 = torch.cat([prefix_keys, current_keys[:, None, :]], dim=1).float()
+    kv_heads, num_tokens, dim = keys32.shape
+    num_pages = math.ceil(num_tokens / page_size)
+    pad = num_pages * page_size - num_tokens
+    if pad:
+        keys32 = torch.cat([keys32, keys32[:, -1:, :].expand(kv_heads, pad, dim)], dim=1)
+    pages = keys32.view(kv_heads, num_pages, page_size, dim)
+    page_min = pages.amin(dim=2).index_select(0, head_to_kv)
+    page_max = pages.amax(dim=2).index_select(0, head_to_kv)
+    query32 = queries.float()[:, None, :]
+    return torch.maximum(query32 * page_min, query32 * page_max).sum(dim=-1)
+
+
+def quest_topk_indices_batched(
+    scores: torch.Tensor, *, num_tokens: int, page_size: int, budget: int,
+) -> tuple[torch.Tensor, torch.Tensor]:
+    page_budget = min(int(scores.shape[-1]), max(1, math.ceil(budget / page_size)))
+    pages = torch.topk(scores, k=page_budget, dim=-1, largest=True, sorted=False).indices
+    offsets = torch.arange(page_size, device=scores.device)
+    indices = (pages[:, :, None] * page_size + offsets).flatten(1)
+    valid = indices.lt(num_tokens)
+    current = num_tokens - 1
+    has_current = (indices.eq(current) & valid).any(dim=-1)
+    indices[:, -1] = torch.where(has_current, indices[:, -1], indices.new_tensor(current))
+    valid[:, -1] = torch.where(has_current, valid[:, -1], valid.new_tensor(True))
+    return indices, valid
 
 
 def select_quest(
@@ -698,6 +760,63 @@ def append_packed_fier_head_cache(cache: PackedFIERHeadCache, key: torch.Tensor)
     _seal_fier_active(cache)
 
 
+def build_packed_fier_triton_layer_cache(
+    keys: torch.Tensor, *, group_size: int, reserve_tokens: int = 2048,
+) -> PackedFIERTritonLayerCache:
+    """Build persistent FIER storage; appends repack only one active group."""
+    if group_size != 32:
+        raise ValueError("Persistent FIER Triton cache currently requires group_size=32")
+    from fier_triton import pack_keys
+    keys = keys.contiguous()
+    packed, mins, maxs = pack_keys(keys, group_size=group_size)
+    kv_heads, tokens, head_dim = (int(v) for v in keys.shape)
+    capacity = ((tokens + reserve_tokens + group_size - 1) // group_size) * group_size
+    capacity = int(capacity)
+    packed_storage = torch.empty(
+        (kv_heads, head_dim, math.ceil(capacity / 32)),
+        device=keys.device, dtype=packed.dtype,
+    )
+    min_storage = torch.empty(
+        (kv_heads, math.ceil(capacity / group_size), head_dim),
+        device=keys.device, dtype=mins.dtype,
+    )
+    max_storage = torch.empty_like(min_storage)
+    packed_storage[:, :, : packed.shape[2]].copy_(packed)
+    min_storage[:, : mins.shape[1]].copy_(mins)
+    max_storage[:, : maxs.shape[1]].copy_(maxs)
+    sealed = (tokens // group_size) * group_size
+    return PackedFIERTritonLayerCache(
+        group_size, tokens, sealed, packed_storage, min_storage, max_storage,
+        keys[:, sealed:].detach().clone().contiguous(),
+    )
+
+
+def stage_packed_fier_current(
+    cache: PackedFIERTritonLayerCache, keys: torch.Tensor,
+) -> None:
+    """Write active-group metadata including current K without advancing cache."""
+    from fier_triton import pack_keys
+    staged = torch.cat([cache.active_keys, keys.detach()], dim=1).contiguous()
+    if cache.sealed_tokens + int(staged.shape[1]) > int(cache.packed.shape[2]) * 32:
+        raise RuntimeError("persistent FIER cache reserve exhausted")
+    packed, mins, maxs = pack_keys(staged, group_size=cache.group_size)
+    word_offset = cache.sealed_tokens // 32
+    group_offset = cache.sealed_tokens // cache.group_size
+    cache.packed[:, :, word_offset : word_offset + packed.shape[2]].copy_(packed)
+    cache.group_min[:, group_offset : group_offset + mins.shape[1]].copy_(mins)
+    cache.group_max[:, group_offset : group_offset + maxs.shape[1]].copy_(maxs)
+
+
+def append_packed_fier_triton_layer_cache(
+    cache: PackedFIERTritonLayerCache, keys: torch.Tensor,
+) -> None:
+    cache.active_keys = torch.cat([cache.active_keys, keys.detach()], dim=1).contiguous()
+    cache.token_count += int(keys.shape[1])
+    if int(cache.active_keys.shape[1]) == cache.group_size:
+        cache.sealed_tokens += cache.group_size
+        cache.active_keys = cache.active_keys[:, :0].contiguous()
+
+
 def select_fier_prepacked(
     query: torch.Tensor,
     cache: PackedFIERHeadCache,
@@ -938,17 +1057,64 @@ def select_candidates(
     raise ValueError(f"Unknown method {method!r}; expected one of {SUPPORTED_METHODS}")
 
 
+def gather_selected_kv(
+    keys: torch.Tensor, values: torch.Tensor, indices: torch.Tensor
+) -> tuple[torch.Tensor, torch.Tensor]:
+    return (
+        keys.index_select(0, indices).float(),
+        values.index_select(0, indices).float(),
+    )
+
+
+def exact_attention_selected(
+    query: torch.Tensor, selected_keys: torch.Tensor, selected_values: torch.Tensor
+) -> torch.Tensor:
+    scores = (selected_keys @ query.float()) / math.sqrt(query.numel())
+    probabilities = torch.softmax(scores, dim=-1)
+    return probabilities @ selected_values
+
+
+def gather_selected_kv_batched(
+    prefix_keys: torch.Tensor, prefix_values: torch.Tensor,
+    current_keys: torch.Tensor, current_values: torch.Tensor,
+    indices: torch.Tensor, head_to_kv: torch.Tensor,
+) -> tuple[torch.Tensor, torch.Tensor]:
+    """Gather [QH,K,D] directly without repeating full GQA K/V."""
+    prefix_tokens = int(prefix_keys.shape[1])
+    prefix_indices = indices.clamp_max(prefix_tokens - 1)
+    kv_heads = head_to_kv[:, None].expand_as(prefix_indices)
+    selected_keys = prefix_keys[kv_heads, prefix_indices]
+    selected_values = prefix_values[kv_heads, prefix_indices]
+    current_mask = indices.eq(prefix_tokens).unsqueeze(-1)
+    current_keys_q = current_keys.index_select(0, head_to_kv)[:, None, :]
+    current_values_q = current_values.index_select(0, head_to_kv)[:, None, :]
+    return (
+        torch.where(current_mask, current_keys_q, selected_keys),
+        torch.where(current_mask, current_values_q, selected_values),
+    )
+
+
+def exact_attention_selected_batched(
+    queries: torch.Tensor, selected_keys: torch.Tensor, selected_values: torch.Tensor,
+    valid_mask: torch.Tensor | None = None,
+) -> torch.Tensor:
+    """Fused SDPA over all query heads while retaining low-precision K/V."""
+    return F.scaled_dot_product_attention(
+        queries.unsqueeze(0).unsqueeze(2), selected_keys.unsqueeze(0),
+        selected_values.unsqueeze(0),
+        attn_mask=None if valid_mask is None else valid_mask[None, :, None, :],
+        dropout_p=0.0, is_causal=False,
+    )[0, :, 0]
+
+
 def exact_attention(
     query: torch.Tensor,
     keys: torch.Tensor,
     values: torch.Tensor,
     indices: torch.Tensor,
 ) -> torch.Tensor:
-    selected_keys = keys.index_select(0, indices).float()
-    selected_values = values.index_select(0, indices).float()
-    scores = (selected_keys @ query.float()) / math.sqrt(query.numel())
-    probabilities = torch.softmax(scores, dim=-1)
-    return probabilities @ selected_values
+    selected_keys, selected_values = gather_selected_kv(keys, values, indices)
+    return exact_attention_selected(query, selected_keys, selected_values)
 
 
 def estimate_candidate_search_ops(
@@ -1033,11 +1199,16 @@ class DecodeDiagnostics:
     available_tokens: int = 0
     sparse_head_calls: int = 0
     candidate_search_ms: float = 0.0
+    candidate_score_ms: float = 0.0
+    candidate_topk_ms: float = 0.0
     candidate_search_ops: float = 0.0
     cache_update_ms: float = 0.0
+    selected_gather_ms: float = 0.0
     selected_attention_ms: float = 0.0
     topk_recall_sum: float = 0.0
     topk_recall_calls: int = 0
+    topk_recall_by_k_sum: dict[int, float] = field(default_factory=dict)
+    topk_recall_by_k_calls: dict[int, int] = field(default_factory=dict)
     attention_mass_recall_sum: float = 0.0
     score_mae_sum: float = 0.0
     score_normalized_mae_sum: float = 0.0
@@ -1055,6 +1226,10 @@ class DecodeDiagnostics:
         if self.topk_recall_calls == 0:
             return None
         return self.topk_recall_sum / self.topk_recall_calls
+
+    def topk_recall_at(self, k: int) -> float | None:
+        calls = self.topk_recall_by_k_calls.get(int(k), 0)
+        return None if calls == 0 else self.topk_recall_by_k_sum[int(k)] / calls
 
     @property
     def attention_mass_recall(self) -> float | None:
@@ -1131,6 +1306,11 @@ def _apply_rope(
 
 
 def _layer_cache(past_key_values: Any, layer_idx: int) -> tuple[torch.Tensor, torch.Tensor]:
+    if isinstance(past_key_values, StaticKVCache):
+        return (
+            past_key_values.key_storage[layer_idx][..., : past_key_values.length, :],
+            past_key_values.value_storage[layer_idx][..., : past_key_values.length, :],
+        )
     try:
         key, value = past_key_values[layer_idx][:2]
         return key, value
@@ -1212,11 +1392,16 @@ class LlamaSparseDecoder:
             raise ValueError("Packed retrieval caches are only implemented for FIER/bit2")
         caches: dict[
             tuple[int, int],
-            PackedFIERHeadCache | PackedBit2HeadCache | PackedBit2MeanLayerCache | PackedBit2CudaLayerCache,
+            PackedFIERHeadCache | PackedFIERTritonLayerCache | PackedBit2HeadCache | PackedBit2MeanLayerCache | PackedBit2CudaLayerCache,
         ] = {}
         for layer_idx in range(len(self.layers)):
             keys, _ = _layer_cache(past_key_values, layer_idx)
             keys = keys.to(self.device)
+            if method == "fier" and self.retrieval.fier_backend == "triton":
+                caches[(layer_idx, -1)] = build_packed_fier_triton_layer_cache(
+                    keys[0], group_size=group_size
+                )
+                continue
             if method == "bit2_qk" and self.retrieval.bit2_backend == "cuda_popc":
                 caches[(layer_idx, -1)] = build_packed_bit2cuda_layer_cache(
                     keys[0], group_size=group_size
@@ -1251,6 +1436,9 @@ class LlamaSparseDecoder:
     ) -> None:
         for layer_idx, key_states in enumerate(new_keys_by_layer):
             layer_cache = packed.caches.get((layer_idx, -1))
+            if isinstance(layer_cache, PackedFIERTritonLayerCache):
+                append_packed_fier_triton_layer_cache(layer_cache, key_states[0])
+                continue
             if isinstance(layer_cache, PackedBit2CudaLayerCache):
                 append_packed_bit2cuda_layer_cache(layer_cache, key_states[0])
                 continue
@@ -1268,12 +1456,46 @@ class LlamaSparseDecoder:
                     raise TypeError("Packed retrieval cache type mismatch")
 
     @torch.inference_mode()
+    def build_static_kv_cache(
+        self, past_key_values: Any, *, reserve_tokens: int,
+    ) -> StaticKVCache:
+        first_key, _ = _layer_cache(past_key_values, 0)
+        length = int(first_key.shape[-2])
+        capacity = length + int(reserve_tokens)
+        key_storage: list[torch.Tensor] = []
+        value_storage: list[torch.Tensor] = []
+        for layer_idx in range(len(self.layers)):
+            key, value = _layer_cache(past_key_values, layer_idx)
+            key_store = torch.empty(
+                (*key.shape[:-2], capacity, key.shape[-1]),
+                device=key.device, dtype=key.dtype,
+            )
+            value_store = torch.empty_like(key_store)
+            key_store[..., :length, :].copy_(key)
+            value_store[..., :length, :].copy_(value)
+            key_storage.append(key_store)
+            value_storage.append(value_store)
+        return StaticKVCache(key_storage, value_storage, length, capacity)
+
+    @torch.inference_mode()
     def append_to_past_key_values(
         self,
         past_key_values: Any,
         new_keys_by_layer: Sequence[torch.Tensor],
         new_values_by_layer: Sequence[torch.Tensor],
     ) -> list[tuple[torch.Tensor, torch.Tensor]]:
+        if isinstance(past_key_values, StaticKVCache):
+            if past_key_values.length >= past_key_values.capacity:
+                raise RuntimeError("static KV cache capacity exhausted")
+            position = past_key_values.length
+            for layer_idx, (new_key, new_value) in enumerate(
+                zip(new_keys_by_layer, new_values_by_layer)
+            ):
+                past_key_values.key_storage[layer_idx][..., position : position + 1, :].copy_(new_key)
+                past_key_values.value_storage[layer_idx][..., position : position + 1, :].copy_(new_value)
+            past_key_values.length += 1
+            return past_key_values
+
         updated = []
         for layer_idx, (new_key, new_value) in enumerate(
             zip(new_keys_by_layer, new_values_by_layer)
@@ -1342,6 +1564,9 @@ class LlamaSparseDecoder:
         )
         diagnostics = DecodeDiagnostics()
         candidate_events: list[tuple[torch.cuda.Event, torch.cuda.Event, torch.device]] = []
+        score_events: list[tuple[torch.cuda.Event, torch.cuda.Event, torch.device]] = []
+        topk_events: list[tuple[torch.cuda.Event, torch.cuda.Event, torch.device]] = []
+        gather_events: list[tuple[torch.cuda.Event, torch.cuda.Event, torch.device]] = []
         attention_events: list[tuple[torch.cuda.Event, torch.cuda.Event, torch.device]] = []
         new_keys_by_layer: list[torch.Tensor] = []
         new_values_by_layer: list[torch.Tensor] = []
@@ -1376,40 +1601,81 @@ class LlamaSparseDecoder:
 
             head_outputs = []
             force_full = method == "full" or layer_idx in self.retrieval.full_layers
+            if force_full:
+                def gather_full_layer() -> tuple[torch.Tensor, torch.Tensor]:
+                    return (
+                        torch.cat([prefix_keys, key_states], dim=2),
+                        torch.cat([prefix_values, value_states], dim=2),
+                    )
+
+                (full_keys, full_values), gather_cpu_ms = _timed_component(
+                    gather_full_layer, device=query_states.device, cuda_events=gather_events,
+                )
+                diagnostics.selected_gather_ms += gather_cpu_ms
+
+                def attend_full_layer() -> torch.Tensor:
+                    grouped_queries = query_states[0].view(
+                        self.num_kv_heads, self.kv_group_size, 1, self.head_dim
+                    )
+                    return F.scaled_dot_product_attention(
+                        grouped_queries, full_keys[0].unsqueeze(1),
+                        full_values[0].unsqueeze(1), dropout_p=0.0, is_causal=False,
+                    ).reshape(self.num_heads, self.head_dim)
+
+                attention_output, attention_cpu_ms = _timed_component(
+                    attend_full_layer, device=query_states.device, cuda_events=attention_events,
+                )
+                diagnostics.selected_attention_ms += attention_cpu_ms
+                attention_output = attention_output.reshape(1, 1, -1).to(normalized.dtype)
+                hidden_states = residual + attention.o_proj(attention_output)
+                residual = hidden_states
+                hidden_states = residual + layer.mlp(layer.post_attention_layernorm(hidden_states))
+                continue
+
             batched_fier_indices = None
             if (
                 method == "fier"
                 and self.retrieval.fier_backend == "triton"
                 and not force_full
             ):
-                if retrieval_caches is not None:
-                    raise RuntimeError(
-                        "FIER Triton backend uses the direct packed path, not "
-                        "prepacked retrieval_caches"
-                    )
-
-                def select_all_fier_heads() -> torch.Tensor:
-                    from fier_triton import score_tensors
-
-                    layer_keys = torch.cat([prefix_keys[0], key_states[0]], dim=1)
-                    head_to_kv = self.head_to_kv
-                    scores = score_tensors(
+                if retrieval_caches is None:
+                    raise RuntimeError("FIER Triton optimization requires persistent cache")
+                fier_cache = retrieval_caches.caches[(layer_idx, -1)]
+                if not isinstance(fier_cache, PackedFIERTritonLayerCache):
+                    raise TypeError("persistent FIER layer cache mismatch")
+                def score_all_fier_heads() -> torch.Tensor:
+                    from fier_triton import score_packed_batched
+                    stage_packed_fier_current(fier_cache, key_states[0])
+                    tokens = fier_cache.token_count + 1
+                    return score_packed_batched(
                         query_states[0, :, 0, :].unsqueeze(0),
-                        layer_keys.contiguous(),
-                        head_to_kv=head_to_kv,
-                        group_size=self.retrieval.fier_group_size,
+                        fier_cache.packed, fier_cache.group_min, fier_cache.group_max,
+                        self.head_to_kv, tokens=tokens,
+                        group_size=fier_cache.group_size,
                     )
-                    topk_budget = min(self.retrieval.budget, int(layer_keys.shape[1]))
-                    return torch.topk(
-                        scores, k=topk_budget, dim=-1, largest=True, sorted=False
-                    ).indices[0]
 
-                batched_fier_indices, candidate_cpu_ms = _timed_component(
-                    select_all_fier_heads,
+                fier_scores, score_cpu_ms = _timed_component(
+                    score_all_fier_heads,
                     device=query_states.device,
-                    cuda_events=candidate_events,
+                    cuda_events=score_events,
                 )
-                diagnostics.candidate_search_ms += candidate_cpu_ms
+                diagnostics.candidate_score_ms += score_cpu_ms
+
+                def topk_all_fier_heads() -> torch.Tensor:
+                    prefix_tokens = int(fier_scores.shape[-1]) - 1
+                    topk_budget = min(self.retrieval.budget - 1, prefix_tokens)
+                    prefix_indices = torch.topk(
+                        fier_scores[..., :prefix_tokens], k=topk_budget, dim=-1,
+                        largest=True, sorted=False,
+                    ).indices[0]
+                    return _append_current_reserved(prefix_indices, prefix_tokens + 1)
+
+                batched_fier_indices, topk_cpu_ms = _timed_component(
+                    topk_all_fier_heads,
+                    device=query_states.device,
+                    cuda_events=topk_events,
+                )
+                diagnostics.candidate_topk_ms += topk_cpu_ms
 
             batched_bit2_indices = None
             batched_bit2_scores = None
@@ -1447,6 +1713,50 @@ class LlamaSparseDecoder:
                         "cuda_popc backends currently use the direct packed CUDA path, "
                         "not prepacked retrieval_caches"
                     )
+
+                if (
+                    is_cached_2mean
+                    and self.retrieval.bit2_backend in {"qk_2mean", "cuda_qk_2mean"}
+                ):
+                    cache = retrieval_caches.caches[(layer_idx, -1)]
+                    if not isinstance(cache, PackedBit2MeanLayerCache):
+                        raise TypeError("2-mean layer cache mismatch")
+                    from bit2_cuda import score_qk_2mean_cuda_packed
+
+                    def score_all_qk_2mean_heads() -> torch.Tensor:
+                        return score_qk_2mean_cuda_packed(
+                            query_states[0, :, 0, :].unsqueeze(0).contiguous(),
+                            cache.packed,
+                            head_to_kv=self.head_to_kv,
+                            tokens=cache.token_count,
+                        )
+
+                    qk_scores, score_cpu_ms = _timed_component(
+                        score_all_qk_2mean_heads,
+                        device=query_states.device,
+                        cuda_events=score_events,
+                    )
+                    diagnostics.candidate_score_ms += score_cpu_ms
+
+                    def topk_all_qk_2mean_heads() -> torch.Tensor:
+                        topk_budget = min(
+                            self.retrieval.budget - 1, cache.token_count
+                        )
+                        prefix_indices = torch.topk(
+                            qk_scores, k=topk_budget, dim=-1,
+                            largest=True, sorted=False,
+                        ).indices[0]
+                        return _append_current_reserved(
+                            prefix_indices, cache.token_count + 1
+                        )
+
+                    batched_bit2_indices, topk_cpu_ms = _timed_component(
+                        topk_all_qk_2mean_heads,
+                        device=query_states.device,
+                        cuda_events=topk_events,
+                    )
+                    diagnostics.candidate_topk_ms += topk_cpu_ms
+                    batched_bit2_scores = qk_scores[0]
 
                 def select_all_bit2_heads() -> torch.Tensor:
                     from bit2_cuda import (
@@ -1556,25 +1866,59 @@ class LlamaSparseDecoder:
                     ).indices[0]
                     return indices, scores[0]
 
-                (batched_bit2_indices, batched_bit2_scores), candidate_cpu_ms = _timed_component(
-                    select_all_bit2_heads,
-                    device=query_states.device,
-                    cuda_events=candidate_events,
-                )
-                diagnostics.candidate_search_ms += candidate_cpu_ms
+                if batched_bit2_indices is None:
+                    (
+                        (batched_bit2_indices, batched_bit2_scores),
+                        candidate_cpu_ms,
+                    ) = _timed_component(
+                        select_all_bit2_heads,
+                        device=query_states.device,
+                        cuda_events=candidate_events,
+                    )
+                    diagnostics.candidate_search_ms += candidate_cpu_ms
 
+            batched_quest_indices = None
+            batched_quest_valid = None
+            if method == "quest":
+                quest_scores, score_cpu_ms = _timed_component(
+                    lambda: quest_page_scores_batched(
+                        query_states[0, :, 0], prefix_keys[0], key_states[0, :, 0],
+                        head_to_kv=self.head_to_kv,
+                        page_size=self.retrieval.quest_page_size,
+                    ),
+                    device=query_states.device, cuda_events=score_events,
+                )
+                diagnostics.candidate_score_ms += score_cpu_ms
+                (batched_quest_indices, batched_quest_valid), topk_cpu_ms = _timed_component(
+                    lambda: quest_topk_indices_batched(
+                        quest_scores, num_tokens=int(prefix_keys.shape[2]) + 1,
+                        page_size=self.retrieval.quest_page_size, budget=self.retrieval.budget,
+                    ),
+                    device=query_states.device, cuda_events=topk_events,
+                )
+                diagnostics.candidate_topk_ms += topk_cpu_ms
+
+            use_batched_sparse_attention = (
+                batched_fier_indices is not None or batched_bit2_indices is not None
+                or batched_quest_indices is not None
+            )
+            batched_attention_indices: list[torch.Tensor] = []
+            batched_attention_valid: list[torch.Tensor] = []
+            num_tokens = int(prefix_keys.shape[2]) + 1
             for head_idx in range(self.num_heads):
                 kv_head_idx = head_idx // self.kv_group_size
                 query = query_states[0, head_idx, 0]
-                keys = torch.cat(
-                    [prefix_keys[0, kv_head_idx], key_states[0, kv_head_idx]],
-                    dim=0,
-                )
-                values = torch.cat(
-                    [prefix_values[0, kv_head_idx], value_states[0, kv_head_idx]],
-                    dim=0,
-                )
-                active_method = "full" if force_full else method
+                if use_batched_sparse_attention:
+                    keys = None
+                    values = None
+                else:
+                    keys = torch.cat(
+                        [prefix_keys[0, kv_head_idx], key_states[0, kv_head_idx]], dim=0,
+                    )
+                    values = torch.cat(
+                        [prefix_values[0, kv_head_idx], value_states[0, kv_head_idx]], dim=0,
+                    )
+                active_method = method
                 basis = None
                 if active_method in {"pqsift", "loki"}:
                     if self.pca_cache is None:
@@ -1585,23 +1929,53 @@ class LlamaSparseDecoder:
                         device=query.device,
                     )
                 if batched_fier_indices is not None and active_method == "fier":
-                    indices = _include_current(
-                        batched_fier_indices[head_idx],
-                        keys.shape[0],
-                        min(self.retrieval.budget, keys.shape[0]),
-                    )
+                    indices = batched_fier_indices[head_idx]
                     candidate_cpu_ms = 0.0
                 elif batched_bit2_indices is not None and active_method == "bit2_qk":
-                    indices = _include_current(
-                        batched_bit2_indices[head_idx],
-                        keys.shape[0],
-                        min(self.retrieval.budget, keys.shape[0]),
+                    indices = batched_bit2_indices[head_idx]
+                    candidate_cpu_ms = 0.0
+                elif batched_quest_indices is not None and active_method == "quest":
+                    indices = batched_quest_indices[head_idx]
+                    index_valid = batched_quest_valid[head_idx]
+                    candidate_cpu_ms = 0.0
+                elif active_method == "quest":
+                    quest_scores, score_cpu_ms = _timed_component(
+                        lambda: quest_page_scores(
+                            query, keys, page_size=self.retrieval.quest_page_size
+                        ),
+                        device=query.device,
+                        cuda_events=score_events,
                     )
+                    diagnostics.candidate_score_ms += score_cpu_ms
+
+                    def topk_quest_pages() -> torch.Tensor:
+                        page_size = self.retrieval.quest_page_size
+                        page_budget = min(
+                            int(quest_scores.numel()),
+                            max(1, math.ceil(self.retrieval.budget / page_size)),
+                        )
+                        selected_pages = _topk_indices(quest_scores, page_budget)
+                        offsets = torch.arange(page_size, device=keys.device)
+                        selected = (
+                            selected_pages[:, None] * page_size + offsets[None, :]
+                        ).flatten()
+                        selected = selected[selected < keys.shape[0]]
+                        return _include_current(
+                            selected, keys.shape[0],
+                            min(self.retrieval.budget, keys.shape[0]),
+                        )
+
+                    indices, topk_cpu_ms = _timed_component(
+                        topk_quest_pages,
+                        device=query.device,
+                        cuda_events=topk_events,
+                    )
+                    diagnostics.candidate_topk_ms += topk_cpu_ms
                     candidate_cpu_ms = 0.0
                 elif (
                     retrieval_caches is not None
                     and not force_full
-                    and active_method in {"fier", "bit2_qk"}
+                    and active_method in {"quest", "fier", "bit2_qk"}
                 ):
                     packed_head_cache = retrieval_caches.caches[(layer_idx, kv_head_idx)]
                     indices, candidate_cpu_ms = _timed_component(
@@ -1628,35 +2002,98 @@ class LlamaSparseDecoder:
                         cuda_events=candidate_events,
                     )
                 diagnostics.candidate_search_ms += candidate_cpu_ms
+                index_valid = (
+                    index_valid if batched_quest_indices is not None
+                    else torch.ones_like(indices, dtype=torch.bool)
+                )
+                metric_indices = indices[index_valid]
                 ops_estimator = (
                     estimate_prepacked_candidate_search_ops
-                    if retrieval_caches is not None and active_method in {"fier", "bit2_qk"}
+                    if retrieval_caches is not None and active_method in {"quest", "fier", "bit2_qk"}
                     else estimate_candidate_search_ops
                 )
                 diagnostics.candidate_search_ops += ops_estimator(
                     active_method,
-                    num_tokens=int(keys.shape[0]),
+                    num_tokens=num_tokens,
                     head_dim=int(query.numel()),
                     budget=self.retrieval.budget,
                 )
                 if not force_full:
-                    diagnostics.selected_tokens += int(indices.numel())
-                    diagnostics.available_tokens += int(keys.shape[0])
+                    diagnostics.selected_tokens += int(metric_indices.numel())
+                    diagnostics.available_tokens += num_tokens
                     diagnostics.sparse_head_calls += 1
                     if (
                         self.retrieval.measure_topk_recall
-                        and active_method in {"fier", "bit2_qk"}
+                        and active_method in {"quest", "fier", "bit2_qk"}
                         and layer_idx == self.diagnostic_layer
                     ):
-                        recall_k = min(self.retrieval.budget, int(keys.shape[0]))
-                        exact_scores = (keys.float() @ query.float()) / math.sqrt(self.head_dim)
-                        exact_topk = _topk_indices(exact_scores, recall_k)
-                        diagnostics.topk_recall_sum += float(torch.isin(indices, exact_topk).sum().item() / recall_k)
+                        recall_k = min(self.retrieval.budget, num_tokens)
+                        recall_ks = tuple(
+                            k for k in (1024, 2048, 3072, 4096)
+                            if k <= recall_k
+                        )
+                        if recall_k not in recall_ks:
+                            recall_ks = (*recall_ks, recall_k)
+                        if keys is None:
+                            keys_for_recall = torch.cat(
+                                [prefix_keys[0, kv_head_idx], key_states[0, kv_head_idx]], dim=0,
+                            )
+                        else:
+                            keys_for_recall = keys
+                        exact_scores = (keys_for_recall.float() @ query.float()) / math.sqrt(self.head_dim)
+                        recall_by_k: dict[int, float] = {}
+                        for diagnostic_k in recall_ks:
+                            if active_method == "fier" and fier_scores is not None:
+                                prefix_k = min(diagnostic_k - 1, num_tokens - 1)
+                                approx_prefix = torch.topk(
+                                    fier_scores[0, head_idx, : num_tokens - 1],
+                                    k=prefix_k, largest=True, sorted=False,
+                                ).indices
+                                approx_indices = _append_current_reserved(
+                                    approx_prefix, num_tokens
+                                )
+                            elif active_method == "bit2_qk" and batched_bit2_scores is not None:
+                                prefix_k = min(diagnostic_k - 1, num_tokens - 1)
+                                approx_prefix = torch.topk(
+                                    batched_bit2_scores[head_idx],
+                                    k=prefix_k, largest=True, sorted=False,
+                                ).indices
+                                approx_indices = _append_current_reserved(
+                                    approx_prefix, num_tokens
+                                )
+                            elif active_method == "quest" and quest_scores is not None:
+                                quest_indices, quest_valid = quest_topk_indices_batched(
+                                    quest_scores[head_idx : head_idx + 1],
+                                    num_tokens=num_tokens,
+                                    page_size=self.retrieval.quest_page_size,
+                                    budget=diagnostic_k,
+                                )
+                                approx_indices = quest_indices[0][quest_valid[0]]
+                            else:
+                                approx_indices = metric_indices
+                            exact_topk_k = _topk_indices(exact_scores, diagnostic_k)
+                            recall_value = float(
+                                torch.isin(approx_indices, exact_topk_k).sum().item()
+                                / diagnostic_k
+                            )
+                            recall_by_k[diagnostic_k] = recall_value
+                            diagnostics.topk_recall_by_k_sum[diagnostic_k] = (
+                                diagnostics.topk_recall_by_k_sum.get(diagnostic_k, 0.0)
+                                + recall_value
+                            )
+                            diagnostics.topk_recall_by_k_calls[diagnostic_k] = (
+                                diagnostics.topk_recall_by_k_calls.get(diagnostic_k, 0) + 1
+                            )
+                        diagnostics.topk_recall_sum += recall_by_k[recall_k]
                         diagnostics.attention_mass_recall_sum += float(
-                            torch.softmax(exact_scores, dim=0).index_select(0, indices).sum().item()
+                            torch.softmax(exact_scores, dim=0).index_select(0, metric_indices).sum().item()
                         )
                         diagnostics.topk_recall_calls += 1
-                        if active_method == "bit2_qk" and batched_bit2_scores is not None:
+                        if (
+                            self.retrieval.measure_score_diagnostics
+                            and active_method == "bit2_qk"
+                            and batched_bit2_scores is not None
+                        ):
                             approx = batched_bit2_scores[head_idx].float()
                             exact_for_score = exact_scores[: approx.numel()]
                             raw_mae = (approx - exact_for_score).abs().mean()
@@ -1674,15 +2111,49 @@ class LlamaSparseDecoder:
                             diagnostics.score_normalized_mae_sum += float(norm_mae.item())
                             diagnostics.spearman_sum += float(spearman.item())
                             diagnostics.score_diagnostic_calls += 1
+                if use_batched_sparse_attention:
+                    batched_attention_indices.append(indices)
+                    batched_attention_valid.append(index_valid)
+                    continue
+                assert keys is not None and values is not None
+                (selected_keys, selected_values), gather_cpu_ms = _timed_component(
+                    lambda: gather_selected_kv(keys, values, indices),
+                    device=query.device,
+                    cuda_events=gather_events,
+                )
+                diagnostics.selected_gather_ms += gather_cpu_ms
                 head_output, attention_cpu_ms = _timed_component(
-                    lambda: exact_attention(query, keys, values, indices),
+                    lambda: exact_attention_selected(
+                        query, selected_keys, selected_values
+                    ),
                     device=query.device,
                     cuda_events=attention_events,
                 )
                 diagnostics.selected_attention_ms += attention_cpu_ms
                 head_outputs.append(head_output)
 
-            attention_output = torch.stack(head_outputs, dim=0)
+            if use_batched_sparse_attention:
+                all_indices = torch.stack(batched_attention_indices, dim=0)
+                all_valid = torch.stack(batched_attention_valid, dim=0)
+                def gather_sparse_layer() -> tuple[torch.Tensor, torch.Tensor]:
+                    return gather_selected_kv_batched(
+                        prefix_keys[0], prefix_values[0], key_states[0, :, 0],
+                        value_states[0, :, 0], all_indices, self.head_to_kv,
+                    )
+                (selected_keys, selected_values), gather_cpu_ms = _timed_component(
+                    gather_sparse_layer, device=query_states.device, cuda_events=gather_events,
+                )
+                diagnostics.selected_gather_ms += gather_cpu_ms
+                attention_mask = all_valid if batched_quest_indices is not None else None
+                attention_output, attention_cpu_ms = _timed_component(
+                    lambda: exact_attention_selected_batched(
+                        query_states[0, :, 0], selected_keys, selected_values, attention_mask
+                    ),
+                    device=query_states.device, cuda_events=attention_events,
+                )
+                diagnostics.selected_attention_ms += attention_cpu_ms
+            else:
+                attention_output = torch.stack(head_outputs, dim=0)
             attention_output = attention_output.reshape(1, 1, -1).to(normalized.dtype)
             hidden_states = residual + attention.o_proj(attention_output)
             residual = hidden_states
@@ -1690,7 +2161,14 @@ class LlamaSparseDecoder:
 
         hidden_states = self.backbone.norm(hidden_states)
         logits = self.model.lm_head(hidden_states).float()[0, -1]
-        diagnostics.candidate_search_ms += _finish_cuda_component_timing(candidate_events)
+        diagnostics.candidate_score_ms += _finish_cuda_component_timing(score_events)
+        diagnostics.candidate_topk_ms += _finish_cuda_component_timing(topk_events)
+        diagnostics.candidate_search_ms += (
+            diagnostics.candidate_score_ms
+            + diagnostics.candidate_topk_ms
+            + _finish_cuda_component_timing(candidate_events)
+        )
+        diagnostics.selected_gather_ms += _finish_cuda_component_timing(gather_events)
         diagnostics.selected_attention_ms += _finish_cuda_component_timing(attention_events)
         if return_new_kv:
             return logits, diagnostics, new_keys_by_layer, new_values_by_layer

@@ -1,0 +1,1814 @@
+[
+  {
+    "dataset": "narrativeqa",
+    "sample_id": "341d214a2c377691bf20e5a30b8f7979696bd19141ad9c9f",
+    "source_index": 0,
+    "input_sha256": "0300bf412083ecad6369745864fd7924f5cdfe6a770c9734f92be72ad7a5f63c",
+    "prompt_tokens_before_truncation": 31374,
+    "prompt_tokens": 31384,
+    "truncated": false,
+    "answers": [
+      "He is a guest in the home of the Mulvilles."
+    ],
+    "max_new_tokens": 128
+  },
+  {
+    "dataset": "narrativeqa",
+    "sample_id": "26c6325283dece0b557e34cde9a5c57999ec5c68782e8194",
+    "source_index": 1,
+    "input_sha256": "4fd3f4804703b125593edb1630b34c2372229a708ae6e6b68f71f67ac77a0de3",
+    "prompt_tokens_before_truncation": 31421,
+    "prompt_tokens": 31431,
+    "truncated": false,
+    "answers": [
+      "Because she is in unrequited love with someone else"
+    ],
+    "max_new_tokens": 128
+  },
+  {
+    "dataset": "narrativeqa",
+    "sample_id": "5b8d6fdd30a297e508ebb484f172ca5bce8d31b340eb3506",
+    "source_index": 2,
+    "input_sha256": "e62f11daa696115adfe622f301050df3316cceea634d83770346f5ad0b9a4b2f",
+    "prompt_tokens_before_truncation": 8051,
+    "prompt_tokens": 8061,
+    "truncated": false,
+    "answers": [
+      "The Atlas Mountains"
+    ],
+    "max_new_tokens": 128
+  },
+  {
+    "dataset": "narrativeqa",
+    "sample_id": "68fc4dee839213b5259d41718909195c2f5274665bc18036",
+    "source_index": 3,
+    "input_sha256": "96887344f0dbeccc6db4ee446369f8a018bd56eef6bfaff5afcab830dfcec7d9",
+    "prompt_tokens_before_truncation": 9053,
+    "prompt_tokens": 9063,
+    "truncated": false,
+    "answers": [
+      "To smuggle Socrates out of prison and into a life of exile."
+    ],
+    "max_new_tokens": 128
+  },
+  {
+    "dataset": "narrativeqa",
+    "sample_id": "36232c9c63d19d282643657b3da5b688cb14e3b44009c494",
+    "source_index": 4,
+    "input_sha256": "45072c0d0a24d992c986b3913759bd53f26b36dceaa20a12f86340301a313f87",
+    "prompt_tokens_before_truncation": 37063,
+    "prompt_tokens": 32777,
+    "truncated": true,
+    "answers": [
+      "Otto was so young."
+    ],
+    "max_new_tokens": 128
+  },
+  {
+    "dataset": "narrativeqa",
+    "sample_id": "0bf1995158cbf08134d5dc15475c27f38b3ab5441c422419",
+    "source_index": 5,
+    "input_sha256": "47ec933b3a0dc758ff02b755507be5b7595efcfe0adcbb1893b9c8ec845feac7",
+    "prompt_tokens_before_truncation": 13513,
+    "prompt_tokens": 13523,
+    "truncated": false,
+    "answers": [
+      "Six hours."
+    ],
+    "max_new_tokens": 128
+  },
+  {
+    "dataset": "narrativeqa",
+    "sample_id": "9fbcbb5460066a68460ba92626c25371e0a1ff65b3bd5e84",
+    "source_index": 6,
+    "input_sha256": "3d06b72a7c548f1d4fb3766737bbeb63c003c9094d811b0964763aebfad9c3c2",
+    "prompt_tokens_before_truncation": 31114,
+    "prompt_tokens": 31124,
+    "truncated": false,
+    "answers": [
+      "Lisa, the blacksmith's wife."
+    ],
+    "max_new_tokens": 128
+  },
+  {
+    "dataset": "narrativeqa",
+    "sample_id": "f9cfda8abcc78f9e2f492d4f58ee4996430e9a8911e29726",
+    "source_index": 7,
+    "input_sha256": "9fe6036a81c7d2690d3d2cb8389ae80bd1ea4317a05b7fa154f80eb5a819e243",
+    "prompt_tokens_before_truncation": 46713,
+    "prompt_tokens": 32777,
+    "truncated": true,
+    "answers": [
+      "Dr. Janosz Poha"
+    ],
+    "max_new_tokens": 128
+  },
+  {
+    "dataset": "narrativeqa",
+    "sample_id": "58b8a46c20c05540367b90490846c4f9808db630026b28d4",
+    "source_index": 8,
+    "input_sha256": "f17dabc9addf2abaf2b10c8dc730f56a0e28e2c225fb16c06a9bc740430bfb6b",
+    "prompt_tokens_before_truncation": 31373,
+    "prompt_tokens": 31383,
+    "truncated": false,
+    "answers": [
+      "She is an American."
+    ],
+    "max_new_tokens": 128
+  },
+  {
+    "dataset": "narrativeqa",
+    "sample_id": "c89fd516348b68f96538948b052cb10d5b6f21bc441f5a55",
+    "source_index": 9,
+    "input_sha256": "55b214ec8f3ce98132b9081737a0a107ffb68aa9f60ff957fdf8d562f1ef160e",
+    "prompt_tokens_before_truncation": 8057,
+    "prompt_tokens": 8067,
+    "truncated": false,
+    "answers": [
+      "The scribe."
+    ],
+    "max_new_tokens": 128
+  },
+  {
+    "dataset": "narrativeqa",
+    "sample_id": "67933dc11fce5ce5b80acc04541f0442117aca5eccc06b6f",
+    "source_index": 10,
+    "input_sha256": "2ac0a1502fbc046fbf8f7277c955f94db384f96b4abe402479aab237e185b18a",
+    "prompt_tokens_before_truncation": 36249,
+    "prompt_tokens": 32777,
+    "truncated": true,
+    "answers": [
+      "Because he fought in the first world war."
+    ],
+    "max_new_tokens": 128
+  },
+  {
+    "dataset": "narrativeqa",
+    "sample_id": "b097807317fd6df3e69b46d4332b558f2d6c7f1f893770a6",
+    "source_index": 11,
+    "input_sha256": "3efce2486c5688d097cab028d125a6f621714c0f06dc6d8dfe83f40ab30fee48",
+    "prompt_tokens_before_truncation": 16520,
+    "prompt_tokens": 16530,
+    "truncated": false,
+    "answers": [
+      "ones that are vague"
+    ],
+    "max_new_tokens": 128
+  },
+  {
+    "dataset": "narrativeqa",
+    "sample_id": "24c995f1a10e348519cdc6cd24685ab64bcf6454554de945",
+    "source_index": 12,
+    "input_sha256": "75e235b59b88c2c53b04086c2443f0359a988150b3f2219591896ba61987e9d1",
+    "prompt_tokens_before_truncation": 11309,
+    "prompt_tokens": 11319,
+    "truncated": false,
+    "answers": [
+      "50 years"
+    ],
+    "max_new_tokens": 128
+  },
+  {
+    "dataset": "narrativeqa",
+    "sample_id": "8134d2aaf4e735e59f38656a3c804171a8d1084faef2da93",
+    "source_index": 13,
+    "input_sha256": "a6b6940cbe74de00e884efe86c4831d545890e35d6b53b017b72fdde768410d1",
+    "prompt_tokens_before_truncation": 11388,
+    "prompt_tokens": 11398,
+    "truncated": false,
+    "answers": [
+      "Their daughter, Virgine. "
+    ],
+    "max_new_tokens": 128
+  },
+  {
+    "dataset": "narrativeqa",
+    "sample_id": "321a85aa34669657c041d72547da9f30764447d789bf0e2d",
+    "source_index": 14,
+    "input_sha256": "fda8a6165d133f6b8310307b74b85a98507b38ff2d84d4b7e2bf20c59b63e827",
+    "prompt_tokens_before_truncation": 11383,
+    "prompt_tokens": 11393,
+    "truncated": false,
+    "answers": [
+      "Grassou"
+    ],
+    "max_new_tokens": 128
+  },
+  {
+    "dataset": "narrativeqa",
+    "sample_id": "31a2673d857b4ae705288436804dd94343b7f7d9bfdd1298",
+    "source_index": 15,
+    "input_sha256": "1951b1a8f463cd01af08b148b2a69a2035915dda535849df28616c5f05f7dc29",
+    "prompt_tokens_before_truncation": 46710,
+    "prompt_tokens": 32777,
+    "truncated": true,
+    "answers": [
+      "The slime gets into Dana's apartment from the bathtub."
+    ],
+    "max_new_tokens": 128
+  },
+  {
+    "dataset": "narrativeqa",
+    "sample_id": "7e1df407b7018ef82e2ade488c601066798bbe67a39a6da4",
+    "source_index": 16,
+    "input_sha256": "5acfea17a8b1a093581e0e2f5bf2798f981e361c48e52a49e35c7d3487547b53",
+    "prompt_tokens_before_truncation": 23186,
+    "prompt_tokens": 23196,
+    "truncated": false,
+    "answers": [
+      "That a mule bone is very powerful and can be a weapon."
+    ],
+    "max_new_tokens": 128
+  },
+  {
+    "dataset": "narrativeqa",
+    "sample_id": "7efd1cc4cce3770765ac6c7304b68cfe28c83aec18c01577",
+    "source_index": 17,
+    "input_sha256": "2ac0a1502fbc046fbf8f7277c955f94db384f96b4abe402479aab237e185b18a",
+    "prompt_tokens_before_truncation": 36249,
+    "prompt_tokens": 32777,
+    "truncated": true,
+    "answers": [
+      "Anthony Rogers has previous wartime and combatant experience."
+    ],
+    "max_new_tokens": 128
+  },
+  {
+    "dataset": "narrativeqa",
+    "sample_id": "677af5490eddd9e1d2ecd66ab0d1e038d1f7e7c5e985accf",
+    "source_index": 18,
+    "input_sha256": "686740567467fcd386d9b169556a6b4a38436e800faf8972fe40b4272a3cf989",
+    "prompt_tokens_before_truncation": 32947,
+    "prompt_tokens": 32778,
+    "truncated": true,
+    "answers": [
+      "Her face is blurry"
+    ],
+    "max_new_tokens": 128
+  },
+  {
+    "dataset": "qasper",
+    "sample_id": "3ac3eef636db11635a21a61804cb28e92c546a5686dd1e12",
+    "source_index": 0,
+    "input_sha256": "a30f90812d8bbf551619d20b415e9f1b82c85dc9e9dd8b913c22d2fde7a9261d",
+    "prompt_tokens_before_truncation": 4000,
+    "prompt_tokens": 4010,
+    "truncated": false,
+    "answers": [
+      "Ground truth is not established in the paper"
+    ],
+    "max_new_tokens": 128
+  },
+  {
+    "dataset": "qasper",
+    "sample_id": "db6c4d611b78c840972b57ee0b245003566b982feaff1084",
+    "source_index": 1,
+    "input_sha256": "4c1e0fcb949759a08c91d473e406c7021c1ddc800cc8cbd19aab07936a7ac6ab",
+    "prompt_tokens_before_truncation": 3331,
+    "prompt_tokens": 3341,
+    "truncated": false,
+    "answers": [
+      "extension of the NetVLAD, adds Ghost clusters along with the NetVLAD clusters",
+      "An extension of NetVLAD which replaces hard assignment-based clustering with soft assignment-based clustering with the additon o fusing Ghost clusters to deal with noisy content."
+    ],
+    "max_new_tokens": 128
+  },
+  {
+    "dataset": "qasper",
+    "sample_id": "e419f2bff9d2ab7c3b60b3250caccd2d9ae1285ec3e8e818",
+    "source_index": 2,
+    "input_sha256": "bf9a1cba9c207f1804c2a5531b82ac61dbe8850f1c5793f21e0dac2502f0eadb",
+    "prompt_tokens_before_truncation": 4361,
+    "prompt_tokens": 4371,
+    "truncated": false,
+    "answers": [
+      "the attention model, MDREA, also outperforms the best existing research results (WAP 0.690 to 0.688)"
+    ],
+    "max_new_tokens": 128
+  },
+  {
+    "dataset": "qasper",
+    "sample_id": "9fb085a1f47673d1907f2378c90843b4b6e8622a14fe1fa9",
+    "source_index": 3,
+    "input_sha256": "b5d8680a5db3423c8df5526399551c23fd7f411c9a3bbe562ab8e053425b43a3",
+    "prompt_tokens_before_truncation": 2977,
+    "prompt_tokens": 2987,
+    "truncated": false,
+    "answers": [
+      "using tweets that one has replied or quoted to as contextual information",
+      "text sequences of context tweets"
+    ],
+    "max_new_tokens": 128
+  },
+  {
+    "dataset": "qasper",
+    "sample_id": "14e88916523197e066dbb743339685621db47c4beb503abb",
+    "source_index": 4,
+    "input_sha256": "5b65d7cb27b5dd4b668b114773aafef102270532c008107484b9d54ca8e85e7c",
+    "prompt_tokens_before_truncation": 4439,
+    "prompt_tokens": 4449,
+    "truncated": false,
+    "answers": [
+      "FoxNews, CNN, ESPN, New York Times, Time magazine, Huffington Post Weird News, The Guardian, Cartoon Network, Cooking Light, Home Cooking Adventure, Justin Bieber, Nickelodeon, Spongebob, Disney",
+      "FoxNews, CNN, ESPN, New York Times, Time magazine, Huffington Post Weird News, The Guardian, Cartoon Network, Cooking Light, Home Cooking Adventure, Justin Bieber, Nickelodeon, Spongebob, Disney."
+    ],
+    "max_new_tokens": 128
+  },
+  {
+    "dataset": "qasper",
+    "sample_id": "c109a25d23a8c5c95af8697ef1ac51cd3bee93c67521af6d",
+    "source_index": 5,
+    "input_sha256": "c270a2395d463d4cc5512fe718ed0abc88cef1509b9fd51d44459268941c5fb5",
+    "prompt_tokens_before_truncation": 5373,
+    "prompt_tokens": 5383,
+    "truncated": false,
+    "answers": [
+      "Yes",
+      "Yes"
+    ],
+    "max_new_tokens": 128
+  },
+  {
+    "dataset": "qasper",
+    "sample_id": "072d3de1a7122730a13a31db3eede4113af2d920814f0aaa",
+    "source_index": 6,
+    "input_sha256": "0bd21c9e3055bb2984923eb42b5f53e8a019e73300dbd9d49ecb1d44d70c7cfe",
+    "prompt_tokens_before_truncation": 5635,
+    "prompt_tokens": 5645,
+    "truncated": false,
+    "answers": [
+      "Answer with content missing: (Evaluation Metrics section) Precision, Recall, F1-scores, Strict match, METEOR, ROUGE-2"
+    ],
+    "max_new_tokens": 128
+  },
+  {
+    "dataset": "qasper",
+    "sample_id": "8fa5af6a36dd0b6b73900b2ec6f6e43a652a3e7d2b827a58",
+    "source_index": 7,
+    "input_sha256": "d0bb260a7a05f49b91e94816313b1b08eaffab76e5ce1dfe3a2f1cfb7df4a985",
+    "prompt_tokens_before_truncation": 6498,
+    "prompt_tokens": 6508,
+    "truncated": false,
+    "answers": [
+      "CNN/DailyMail news highlights, New York Times Annotated Corpus, XSum",
+      "the CNN/DailyMail news highlights dataset BIBREF24, the New York Times Annotated Corpus (NYT; BIBREF25), XSum BIBREF22"
+    ],
+    "max_new_tokens": 128
+  },
+  {
+    "dataset": "qasper",
+    "sample_id": "5f00d4f6e62f4b99484eb78491f803f8143cc1b13ad33816",
+    "source_index": 8,
+    "input_sha256": "a4398dd8240d6f6e051f9e6f70f578d967308bcde06b9eb6989a5b92cfe12204",
+    "prompt_tokens_before_truncation": 3490,
+    "prompt_tokens": 3500,
+    "truncated": false,
+    "answers": [
+      "GM$\\_$KL achieves better correlation than existing approaches for various metrics on SCWS dataset."
+    ],
+    "max_new_tokens": 128
+  },
+  {
+    "dataset": "qasper",
+    "sample_id": "91dd7b7a6ead4025763812d70dc51c6674b0acf31bd5a5f0",
+    "source_index": 9,
+    "input_sha256": "d20e0874f9448c81215c8d992404144fa74ed6ebb62af1ed2a0d1295d77736f1",
+    "prompt_tokens_before_truncation": 5322,
+    "prompt_tokens": 5332,
+    "truncated": false,
+    "answers": [
+      "simply averaging the predictions from the constituent single models"
+    ],
+    "max_new_tokens": 128
+  },
+  {
+    "dataset": "qasper",
+    "sample_id": "fe6e5087f91071369646d9d868d784a290d0d13013292b61",
+    "source_index": 10,
+    "input_sha256": "bcdaad0d0570d6b9b36610fa12b2c9a2546309b534779e89fd63b958a255b4c7",
+    "prompt_tokens_before_truncation": 4593,
+    "prompt_tokens": 4603,
+    "truncated": false,
+    "answers": [
+      "Friends TV sitcom, Facebook messenger chats"
+    ],
+    "max_new_tokens": 128
+  },
+  {
+    "dataset": "qasper",
+    "sample_id": "51b9066a5f2845e2fdf0d1dcde6833f70ae49ed01aa306db",
+    "source_index": 11,
+    "input_sha256": "22a209c399057e01b14904074247ceee613fe13bc8f99696cb2ce6cccbe4f410",
+    "prompt_tokens_before_truncation": 3254,
+    "prompt_tokens": 3264,
+    "truncated": false,
+    "answers": [
+      "English",
+      "Simple English"
+    ],
+    "max_new_tokens": 128
+  },
+  {
+    "dataset": "qasper",
+    "sample_id": "bae15e10e0f414a92fb0e943871ed25c3fc16183a3028012",
+    "source_index": 12,
+    "input_sha256": "ab3e8223f1d05aad980d1afcd04fb648018df6840c57fc01c697e39c80fc6f2f",
+    "prompt_tokens_before_truncation": 3369,
+    "prompt_tokens": 3379,
+    "truncated": false,
+    "answers": [
+      "IMDb dataset of movie reviews",
+      "IMDb"
+    ],
+    "max_new_tokens": 128
+  },
+  {
+    "dataset": "qasper",
+    "sample_id": "d022dfe02fb2a55b4baa40fe436f616aecd3f3ced1a58d7c",
+    "source_index": 13,
+    "input_sha256": "f0d1eb3c20ff80d1f2d16f8e4e23ae9d53564d05e436d18512316b25e8f44872",
+    "prompt_tokens_before_truncation": 8663,
+    "prompt_tokens": 8673,
+    "truncated": false,
+    "answers": [
+      "F1 scores of 85.99 on the DL-PS data,  75.15 on the EC-MT data and 71.53 on the EC-UQ data ",
+      "F1 of 85.99 on the DL-PS dataset (dialog domain); 75.15 on EC-MT and 71.53 on EC-UQ (e-commerce domain)"
+    ],
+    "max_new_tokens": 128
+  },
+  {
+    "dataset": "qasper",
+    "sample_id": "43279ddf85ada1b163aa1b316a4df1418957058206501c26",
+    "source_index": 14,
+    "input_sha256": "bd9c3db1d7d3e10e07a911ed74df36cf232a531bcf94d8ba06064498528adbde",
+    "prompt_tokens_before_truncation": 4726,
+    "prompt_tokens": 4736,
+    "truncated": false,
+    "answers": [
+      "No"
+    ],
+    "max_new_tokens": 128
+  },
+  {
+    "dataset": "qasper",
+    "sample_id": "f27a64d129091a6c8973c001ff789b8f68955b8ff0ae70af",
+    "source_index": 15,
+    "input_sha256": "d6951fb76ee9cfdb4235b5a5ed7df6da7c46f988d06b5c49905ec02c8c2e3ab5",
+    "prompt_tokens_before_truncation": 17626,
+    "prompt_tokens": 17636,
+    "truncated": false,
+    "answers": [
+      "Custom dataset with user questions; set of documents, twitter posts and news articles, all related to finance.",
+      "a self-collected financial intents dataset in Portuguese"
+    ],
+    "max_new_tokens": 128
+  },
+  {
+    "dataset": "qasper",
+    "sample_id": "c47ca982b6c4681c4741d4708801fa79a3e1cab17d0a2c4a",
+    "source_index": 16,
+    "input_sha256": "542df22950bb980e02ca098277e9b0dd3dfb5d0d4864c2fe756962ed11440e77",
+    "prompt_tokens_before_truncation": 15563,
+    "prompt_tokens": 15573,
+    "truncated": false,
+    "answers": [
+      "Energy with accuracy of 0.538",
+      "Energy"
+    ],
+    "max_new_tokens": 128
+  },
+  {
+    "dataset": "qasper",
+    "sample_id": "1614ea21f8d039debfc655015f8133d0ef220837804ddf62",
+    "source_index": 17,
+    "input_sha256": "e29a8b5b73507d0de5a29122039148df24a8a15d00cbef9724a9c4b4d81abfbd",
+    "prompt_tokens_before_truncation": 5141,
+    "prompt_tokens": 5151,
+    "truncated": false,
+    "answers": [
+      "RNN-based NMT model, Transformer-NMT"
+    ],
+    "max_new_tokens": 128
+  },
+  {
+    "dataset": "qasper",
+    "sample_id": "159a474e0a7155a2d0b984cbb5215cdc853d721605b90154",
+    "source_index": 18,
+    "input_sha256": "1358b7498eed27f0d9d64a3d8170c209ee5999027e9f4e908e4a559826c559d8",
+    "prompt_tokens_before_truncation": 5102,
+    "prompt_tokens": 5112,
+    "truncated": false,
+    "answers": [
+      "a regularization term associated with neutral features, the maximum entropy of class distribution regularization term, the KL divergence between reference and predicted class distribution",
+      "a regularization term associated with neutral features,  the maximum entropy of class distribution, KL divergence between reference and predicted class distribution"
+    ],
+    "max_new_tokens": 128
+  },
+  {
+    "dataset": "multifieldqa_en",
+    "sample_id": "c29e95ab6195406aceecf3874186150cb1b8b26db5bcd0e4",
+    "source_index": 0,
+    "input_sha256": "24ef317804681cb6b180fe94cffc115a3cb4b3fc9b6ee542e467dd7f97e79a64",
+    "prompt_tokens_before_truncation": 1530,
+    "prompt_tokens": 1540,
+    "truncated": false,
+    "answers": [
+      "South West Ultras fan club."
+    ],
+    "max_new_tokens": 64
+  },
+  {
+    "dataset": "multifieldqa_en",
+    "sample_id": "1d46294ee8fcc0a64828778b04198fcbe4f75841775e1205",
+    "source_index": 1,
+    "input_sha256": "9f8ef1a93a21752263f4e4dba00550ceea419fd359827bd2fd400eaa2534e0fd",
+    "prompt_tokens_before_truncation": 11052,
+    "prompt_tokens": 11062,
+    "truncated": false,
+    "answers": [
+      "No, it is not necessary."
+    ],
+    "max_new_tokens": 64
+  },
+  {
+    "dataset": "multifieldqa_en",
+    "sample_id": "5b978c8d5792b07ad99da0fc2639c6046051e9c29825ad25",
+    "source_index": 2,
+    "input_sha256": "c569aa99ae925c34211e704c3c4fc169d074395d04ce23182abdadbc70856e88",
+    "prompt_tokens_before_truncation": 8152,
+    "prompt_tokens": 8162,
+    "truncated": false,
+    "answers": [
+      "Low temperature scanning tunneling microscopy and spectroscopy (STM/STS)."
+    ],
+    "max_new_tokens": 64
+  },
+  {
+    "dataset": "multifieldqa_en",
+    "sample_id": "2f73cf12085e3fb879c775fc4851b72092a060cad5a927c6",
+    "source_index": 3,
+    "input_sha256": "180703acef04fd5260b686283b474dbb377d9c4e60141735650a493a6bbdc780",
+    "prompt_tokens_before_truncation": 11984,
+    "prompt_tokens": 11994,
+    "truncated": false,
+    "answers": [
+      "Implantable Cardioverter Defibrillator (ICD) is a surgically implanted electronic device to treat life-threatening heartbeat irregularities."
+    ],
+    "max_new_tokens": 64
+  },
+  {
+    "dataset": "multifieldqa_en",
+    "sample_id": "41e27260a12cc40a778f8c1ba8bf643ee655871a458e5e1c",
+    "source_index": 4,
+    "input_sha256": "7fc0c4aede4678b712a398c4ec7400840736d83f9e7b541c97865a9bab59764e",
+    "prompt_tokens_before_truncation": 7571,
+    "prompt_tokens": 7581,
+    "truncated": false,
+    "answers": [
+      "The sides of the fuselage are sloped to create a conical section when the fuselage is formed."
+    ],
+    "max_new_tokens": 64
+  },
+  {
+    "dataset": "multifieldqa_en",
+    "sample_id": "917f18543035ee1b9161cded1d3352531dbf3b249b5f0a18",
+    "source_index": 5,
+    "input_sha256": "90313fdc1d7d3665418030101ba60aff11526048738488cba5209084679ff9d3",
+    "prompt_tokens_before_truncation": 10785,
+    "prompt_tokens": 10795,
+    "truncated": false,
+    "answers": [
+      "It tends to suppress the Kondo effect."
+    ],
+    "max_new_tokens": 64
+  },
+  {
+    "dataset": "multifieldqa_en",
+    "sample_id": "b5b0eb150f44a4d7641b9adf9267ca0c2492ea46626449b3",
+    "source_index": 6,
+    "input_sha256": "b3ab4a3f6831f2106c5be93fdf95fe16b8cde2a4eabcf8f48ef0b2f325488f77",
+    "prompt_tokens_before_truncation": 7970,
+    "prompt_tokens": 7980,
+    "truncated": false,
+    "answers": [
+      "Electricity is used for transport, heating, lighting, communications, and computation."
+    ],
+    "max_new_tokens": 64
+  },
+  {
+    "dataset": "multifieldqa_en",
+    "sample_id": "e02f6a69d7b2a96a3aa6cd84a9189c2d552f6fb089f216e1",
+    "source_index": 7,
+    "input_sha256": "ecde13521c483ae3e81c729d807ed335bbc5073de5336f0b80124a13f0f85418",
+    "prompt_tokens_before_truncation": 3038,
+    "prompt_tokens": 3048,
+    "truncated": false,
+    "answers": [
+      "Vice Admiral."
+    ],
+    "max_new_tokens": 64
+  },
+  {
+    "dataset": "multifieldqa_en",
+    "sample_id": "ed61bdde19a3446389e989c06ab4209f464f9484d42dbd1c",
+    "source_index": 8,
+    "input_sha256": "cbb47637e5a30f034e14b5ecadddedae6da327b7d90c1eecb52e84770a3bff76",
+    "prompt_tokens_before_truncation": 1899,
+    "prompt_tokens": 1909,
+    "truncated": false,
+    "answers": [
+      "They won their first game with a score of 15-3."
+    ],
+    "max_new_tokens": 64
+  },
+  {
+    "dataset": "multifieldqa_en",
+    "sample_id": "c7ad556387e8215bae3f8ccd30ba35e0093218fe48168718",
+    "source_index": 9,
+    "input_sha256": "a888bf6bf3b1b8c2494d7e4637a19742f912f5fd78c08c04507da41319dc0ab0",
+    "prompt_tokens_before_truncation": 13426,
+    "prompt_tokens": 13436,
+    "truncated": false,
+    "answers": [
+      "Vitamins K3, K4, and K5."
+    ],
+    "max_new_tokens": 64
+  },
+  {
+    "dataset": "multifieldqa_en",
+    "sample_id": "566881d2138d7e29cd6dd2b661b6f7ffe4c515c92fdaf837",
+    "source_index": 10,
+    "input_sha256": "9eab7a9bda61b5d8325ec33d91629688e433d65d0155ddb0773db1ad02811b7e",
+    "prompt_tokens_before_truncation": 9207,
+    "prompt_tokens": 9217,
+    "truncated": false,
+    "answers": [
+      "Yes, individual molecules of indeno[1,2-a]fluorene can switch between open-shell and closed-shell states by changing their adsorption site on the surface."
+    ],
+    "max_new_tokens": 64
+  },
+  {
+    "dataset": "multifieldqa_en",
+    "sample_id": "0f101ee4ea9d1d88998598e0405367ad95912c92a7d7a31d",
+    "source_index": 11,
+    "input_sha256": "a97590c792207936d1f8bd22e03832c870c6ea441dce7b74b70ff2a7ef956e64",
+    "prompt_tokens_before_truncation": 9846,
+    "prompt_tokens": 9856,
+    "truncated": false,
+    "answers": [
+      "3-D printing and software development."
+    ],
+    "max_new_tokens": 64
+  },
+  {
+    "dataset": "multifieldqa_en",
+    "sample_id": "b3f3be2f0b46c0df08868f749519635186e6e22cf054ca79",
+    "source_index": 12,
+    "input_sha256": "523d94950f101ad602b34eeb66ef4c5a8728b1600dbaaa0376dbe0a02dac870f",
+    "prompt_tokens_before_truncation": 13431,
+    "prompt_tokens": 13441,
+    "truncated": false,
+    "answers": [
+      "90 μg for women and 120 μg for men."
+    ],
+    "max_new_tokens": 64
+  },
+  {
+    "dataset": "multifieldqa_en",
+    "sample_id": "4c7891d780eb3f45e8c4e5bf14fd9ed6c0bf898fb159b329",
+    "source_index": 13,
+    "input_sha256": "e8aabdc9208a3db45c6039a4ab7f0584b39549b1a104b517237aa523b5e99219",
+    "prompt_tokens_before_truncation": 7970,
+    "prompt_tokens": 7980,
+    "truncated": false,
+    "answers": [
+      "Watt, one joule per second."
+    ],
+    "max_new_tokens": 64
+  },
+  {
+    "dataset": "multifieldqa_en",
+    "sample_id": "04b588ff2dea15f4a9c4fdbaabc55aaad1ba3446114d6741",
+    "source_index": 14,
+    "input_sha256": "9612f4519047f5cc38826d3821c5d62789573ff7b03d80d624a36f757b28aca7",
+    "prompt_tokens_before_truncation": 9521,
+    "prompt_tokens": 9531,
+    "truncated": false,
+    "answers": [
+      "Flexibility."
+    ],
+    "max_new_tokens": 64
+  },
+  {
+    "dataset": "multifieldqa_en",
+    "sample_id": "470018af720bc15decf8f7a9643250c9a6548c8efeb394cd",
+    "source_index": 15,
+    "input_sha256": "a58d577f1960fe674baaa7ae2e6004d87cfa83a63c02967ac8342f19149c5988",
+    "prompt_tokens_before_truncation": 2802,
+    "prompt_tokens": 2812,
+    "truncated": false,
+    "answers": [
+      "Jacob C. Landau."
+    ],
+    "max_new_tokens": 64
+  },
+  {
+    "dataset": "multifieldqa_en",
+    "sample_id": "120cb783c796fbedbc76f04cf9be3318e54a63cd642c4401",
+    "source_index": 16,
+    "input_sha256": "d10206edbe4eb89458541f82de1b7d571679366627b233bca35ca7dcea76fffe",
+    "prompt_tokens_before_truncation": 7890,
+    "prompt_tokens": 7900,
+    "truncated": false,
+    "answers": [
+      "An unsupervised method based on the information bottleneck and contrastive learning."
+    ],
+    "max_new_tokens": 64
+  },
+  {
+    "dataset": "multifieldqa_en",
+    "sample_id": "032ee1448dec7751d00cd9f752fc61c5843a47e49dd7fcb6",
+    "source_index": 17,
+    "input_sha256": "106b62980af0e0e01e16618ac4dbf879446ecc85d5111bd738dcb5deaad1df2d",
+    "prompt_tokens_before_truncation": 8953,
+    "prompt_tokens": 8963,
+    "truncated": false,
+    "answers": [
+      "Using the vacuum Einstein equation and the Baez-Bunn form."
+    ],
+    "max_new_tokens": 64
+  },
+  {
+    "dataset": "multifieldqa_en",
+    "sample_id": "18ef34b54d2ddc134e1be7cae3d6101432465011d016c77a",
+    "source_index": 18,
+    "input_sha256": "fc5bd8b3d92b02034114a42afabbc0149bfe5ba914bba3fd3aef84a577603eb2",
+    "prompt_tokens_before_truncation": 9708,
+    "prompt_tokens": 9718,
+    "truncated": false,
+    "answers": [
+      "The water depth in the Greater Ekofisk Area is 70-75 meters."
+    ],
+    "max_new_tokens": 64
+  },
+  {
+    "dataset": "hotpotqa",
+    "sample_id": "fc6267db9ba02bbb251960231bc87251c581110e4e2b5f3f",
+    "source_index": 0,
+    "input_sha256": "7f491d441a0460795078d242beb0348efabdea26a152081b895dfbc3b35b55ae",
+    "prompt_tokens_before_truncation": 11346,
+    "prompt_tokens": 11356,
+    "truncated": false,
+    "answers": [
+      "Miller v. California"
+    ],
+    "max_new_tokens": 32
+  },
+  {
+    "dataset": "hotpotqa",
+    "sample_id": "d542fcd45bbf5112eee9127f04ae060a887c8ef2050aa160",
+    "source_index": 1,
+    "input_sha256": "1c2d06023205071caa3f0e3e2ad761ff7fe36941a67466231c04bd12298937fe",
+    "prompt_tokens_before_truncation": 16295,
+    "prompt_tokens": 16305,
+    "truncated": false,
+    "answers": [
+      "Charles L. Clifford"
+    ],
+    "max_new_tokens": 32
+  },
+  {
+    "dataset": "hotpotqa",
+    "sample_id": "cb9214532284b8202912b1b75592832daef0b109593185a0",
+    "source_index": 2,
+    "input_sha256": "3928ddd42f19f4a1809ca735effd0c89f7908d6bcdbd9cf17d79d2d634d117ba",
+    "prompt_tokens_before_truncation": 16314,
+    "prompt_tokens": 16324,
+    "truncated": false,
+    "answers": [
+      "Norman"
+    ],
+    "max_new_tokens": 32
+  },
+  {
+    "dataset": "hotpotqa",
+    "sample_id": "105e7f4d337799315ddf870acc4ff2a62a1e6cdf489086cd",
+    "source_index": 3,
+    "input_sha256": "bb5555c8588a387d83ec2661cf24a2ee961ab065733a992e6a597a773222a836",
+    "prompt_tokens_before_truncation": 16344,
+    "prompt_tokens": 16354,
+    "truncated": false,
+    "answers": [
+      "Sun"
+    ],
+    "max_new_tokens": 32
+  },
+  {
+    "dataset": "hotpotqa",
+    "sample_id": "5ff08452b84748458e71d82a6d387599969311fd61cd8fd1",
+    "source_index": 4,
+    "input_sha256": "f874d8901df7419cbb5cd638b706d7b163a5f06f38a108918a468a07d82f6041",
+    "prompt_tokens_before_truncation": 14502,
+    "prompt_tokens": 14512,
+    "truncated": false,
+    "answers": [
+      "erotic thriller film"
+    ],
+    "max_new_tokens": 32
+  },
+  {
+    "dataset": "hotpotqa",
+    "sample_id": "97b31d6d7a9137c220726ad51a6dca3e957e2c94ce5e65b8",
+    "source_index": 5,
+    "input_sha256": "adbc78a4377c45efbcd9c32db91cb4dde9f2ebd8b93797371ed9be368a3fc8fa",
+    "prompt_tokens_before_truncation": 14609,
+    "prompt_tokens": 14619,
+    "truncated": false,
+    "answers": [
+      "Parliament"
+    ],
+    "max_new_tokens": 32
+  },
+  {
+    "dataset": "hotpotqa",
+    "sample_id": "11a7ad9d646184c16480376226d58f1b2754b095563c8344",
+    "source_index": 6,
+    "input_sha256": "ede817050ed966801230f313a2cc32b287d27d76c9e9ff43834abe8780626cdf",
+    "prompt_tokens_before_truncation": 15814,
+    "prompt_tokens": 15824,
+    "truncated": false,
+    "answers": [
+      "Tharangambadi"
+    ],
+    "max_new_tokens": 32
+  },
+  {
+    "dataset": "hotpotqa",
+    "sample_id": "3dd1ade26fd583844dd2af051d61eb20856ccc8e23abae59",
+    "source_index": 7,
+    "input_sha256": "c257d4d32fd15308e8ab3178f04451807ed911f5130a98b7223b8ab1bba87109",
+    "prompt_tokens_before_truncation": 2247,
+    "prompt_tokens": 2257,
+    "truncated": false,
+    "answers": [
+      "Pleiospilos"
+    ],
+    "max_new_tokens": 32
+  },
+  {
+    "dataset": "hotpotqa",
+    "sample_id": "f039fe9cc81a0a312f9899beca2fe26b710bf8c3aa23a4d9",
+    "source_index": 8,
+    "input_sha256": "30604016d99880e0d42f9711d5eb96119b54d1a4cbcf8e79b737b8056381b8bd",
+    "prompt_tokens_before_truncation": 12151,
+    "prompt_tokens": 12161,
+    "truncated": false,
+    "answers": [
+      "2013"
+    ],
+    "max_new_tokens": 32
+  },
+  {
+    "dataset": "hotpotqa",
+    "sample_id": "a30caa5dafcc37835bfe4093f129017adf4c814e9016e10d",
+    "source_index": 9,
+    "input_sha256": "6d71fd692f431e5367efad52a6b177cbdaa9f14c700e04eeef9a378483585210",
+    "prompt_tokens_before_truncation": 8741,
+    "prompt_tokens": 8751,
+    "truncated": false,
+    "answers": [
+      "The Rebirth"
+    ],
+    "max_new_tokens": 32
+  },
+  {
+    "dataset": "hotpotqa",
+    "sample_id": "72feb2a8e5b92548a357bfc11e94050464f93f1ce286418c",
+    "source_index": 10,
+    "input_sha256": "37ccd4fce2e1f784dd6cda45d592e3b076c2d07ebe105ffb0ee9edab39c2d377",
+    "prompt_tokens_before_truncation": 16254,
+    "prompt_tokens": 16264,
+    "truncated": false,
+    "answers": [
+      "October 13, 1980"
+    ],
+    "max_new_tokens": 32
+  },
+  {
+    "dataset": "hotpotqa",
+    "sample_id": "77439b0a62b6de3a022b1d7a5678c1c00fa8d9af42fea1bf",
+    "source_index": 11,
+    "input_sha256": "64cfa49d4bc6c28d578c809a100d67a838da73263839bd4bbffea38e9570913b",
+    "prompt_tokens_before_truncation": 15873,
+    "prompt_tokens": 15883,
+    "truncated": false,
+    "answers": [
+      "Betty Cohen"
+    ],
+    "max_new_tokens": 32
+  },
+  {
+    "dataset": "hotpotqa",
+    "sample_id": "21bc398556b5612bf0437043cd2800e943bab5929c4bccc5",
+    "source_index": 12,
+    "input_sha256": "71013d99d2f47b65e345495767fa329694f1814cba458eccfd5643c85eb40464",
+    "prompt_tokens_before_truncation": 15476,
+    "prompt_tokens": 15486,
+    "truncated": false,
+    "answers": [
+      "Mary Astor"
+    ],
+    "max_new_tokens": 32
+  },
+  {
+    "dataset": "hotpotqa",
+    "sample_id": "e0998dbc2db68c7b18adff7fcc67081acc865c974b721312",
+    "source_index": 13,
+    "input_sha256": "d489e4b1254a88535bb26f1ba4f2c0db58f0dd29cad420cc7a09e2dfcbfadfae",
+    "prompt_tokens_before_truncation": 10288,
+    "prompt_tokens": 10298,
+    "truncated": false,
+    "answers": [
+      "number five"
+    ],
+    "max_new_tokens": 32
+  },
+  {
+    "dataset": "hotpotqa",
+    "sample_id": "139d2fcf8763003414ebd0187eb30b94930de13c4ab754a0",
+    "source_index": 14,
+    "input_sha256": "abfcd91074e1df005592b95a8c3f267eb54ccdfcc774707ccb225b844403c68f",
+    "prompt_tokens_before_truncation": 16212,
+    "prompt_tokens": 16222,
+    "truncated": false,
+    "answers": [
+      "New Zealand, Canada, the United States, the Falkland Islands, and Peru."
+    ],
+    "max_new_tokens": 32
+  },
+  {
+    "dataset": "hotpotqa",
+    "sample_id": "c261ca6aeaf366815232e91db1ef4dc8408cec3750c38ee9",
+    "source_index": 15,
+    "input_sha256": "d7488398105eb08d3b298c07d1a1ff8a6e69a911e455a539746e9030e267501b",
+    "prompt_tokens_before_truncation": 12236,
+    "prompt_tokens": 12246,
+    "truncated": false,
+    "answers": [
+      "2000 Summer Olympic Games"
+    ],
+    "max_new_tokens": 32
+  },
+  {
+    "dataset": "hotpotqa",
+    "sample_id": "ab016faac478c4acc6e9ed3ed87f9e29dbed47fd946be244",
+    "source_index": 16,
+    "input_sha256": "dcee31385313286d6cc3d23a9f352703c2908711ceac474c3776877c19cc26b7",
+    "prompt_tokens_before_truncation": 6185,
+    "prompt_tokens": 6195,
+    "truncated": false,
+    "answers": [
+      "Claudio Javier López"
+    ],
+    "max_new_tokens": 32
+  },
+  {
+    "dataset": "hotpotqa",
+    "sample_id": "cae319fad2385d30d79efac0fb61e58518fbdc0703be3b0f",
+    "source_index": 17,
+    "input_sha256": "77e80db702650ee07f4ad7cd2bccf0add8620681724c783c876eafdb6a6be35a",
+    "prompt_tokens_before_truncation": 16283,
+    "prompt_tokens": 16293,
+    "truncated": false,
+    "answers": [
+      "George H. W. Bush"
+    ],
+    "max_new_tokens": 32
+  },
+  {
+    "dataset": "hotpotqa",
+    "sample_id": "e4df9576e5cd102024e81baf94a43325335d0ba2d8892041",
+    "source_index": 18,
+    "input_sha256": "6be1468106935bea3f70464020391cb429e64282027b3e75b0452ba3e82e15f9",
+    "prompt_tokens_before_truncation": 14002,
+    "prompt_tokens": 14012,
+    "truncated": false,
+    "answers": [
+      "\"Talk That Talk\""
+    ],
+    "max_new_tokens": 32
+  },
+  {
+    "dataset": "gov_report",
+    "sample_id": "4bd6930b3b65caf89aa127d679a80294f31f9cfa7cdab703",
+    "source_index": 0,
+    "input_sha256": "4ff559020309e62b5ee419c9ce68bd76c6854fccb3173a42da40e54448c95e4e",
+    "prompt_tokens_before_truncation": 10698,
+    "prompt_tokens": 10708,
+    "truncated": false,
+    "answers": [
+      "Multiyear procurement (MYP) and block buy contracting (BBC) are special contracting mechanisms that Congress permits the Department of Defense (DOD) to use for a limited number of defense acquisition programs. Compared to the standard or default approach of annual contracting, MYP and BBC have the potential for reducing weapon procurement costs by a few or several percent. Under annual contracting, DOD uses one or more contracts for each year's worth of procurement of a given kind of item. Under MYP, DOD instead uses a single contract for two to five years' worth of procurement of a given kind of item without having to exercise a contract option for each year after the first year. DOD needs congressional approval for each use of MYP. There is a permanent statute governing MYP contracting—10 U.S.C. 2306b. Under this statute, a program must meet several criteria to qualify for MYP. Compared with estimated costs under annual contracting, estimated savings for programs being proposed for MYP have ranged from less than 5% to more than 15%, depending on the particulars of the program in question, with many estimates falling in the range of 5% to 10%. In practice, actual savings from using MYP rather than annual contracting can be difficult to observe or verify because of cost growth during the execution of the contract due to changes in the program independent of the use of MYP rather than annual contracting. BBC is similar to MYP in that it permits DOD to use a single contract for more than one year's worth of procurement of a given kind of item without having to exercise a contract option for each year after the first year. BBC is also similar to MYP in that DOD needs congressional approval for each use of BBC. BBC differs from MYP in the following ways: There is no permanent statute governing the use of BBC. There is no requirement that BBC be approved in both a DOD appropriations act and an act other than a DOD appropriations act. Programs being considered for BBC do not need to meet any legal criteria to qualify for BBC, because there is no permanent statute governing the use of BBC that establishes such criteria. A BBC contract can cover more than five years of planned procurements. Economic order quantity (EOQ) authority—the authority to bring forward selected key components of the items to be procured under the contract and purchase the components in batch form during the first year or two of the contract—does not come automatically as part of BBC authority because there is no permanent statute governing the use of BBC that includes EOQ authority as an automatic feature. BBC contracts are less likely to include cancellation penalties. Potential issues for Congress concerning MYP and BBC include whether to use MYP and BBC in the future more frequently, less frequently, or about as frequently as they are currently used; whether to create a permanent statute to govern the use of BBC, analogous to the permanent statute that governs the use of MYP; and whether the Coast Guard should begin making use of MYP and BBC."
+    ],
+    "max_new_tokens": 512
+  },
+  {
+    "dataset": "gov_report",
+    "sample_id": "e6030e255f6b8c70f7b3c9faf0320d4f7729b4eddacf727f",
+    "source_index": 1,
+    "input_sha256": "370ca910b921630bb7d115c38c9416e80045edc8da722cf5e667227ce2edf69b",
+    "prompt_tokens_before_truncation": 16142,
+    "prompt_tokens": 16152,
+    "truncated": false,
+    "answers": [
+      "DOD spends billions of dollars annually to sustain its weapon systems to support current and future operations. The Air Force and Navy are operating many of their fixed-wing aircraft well beyond their original designed service lives and therefore are confronted with sustainment challenges. House Report 114-537 included a provision for GAO to evaluate the sustainment of major weapon systems. This report, among other things, (1) examines the trends in availability and O&S costs for selected Air Force and Navy fixed-wing aircraft since fiscal year 2011, including whether they met availability goals, and (2) assesses the extent that the departments documented sustainment strategies, reviewed sustainment metrics, and implemented plans to improve aircraft availability. GAO selected a nongeneralizable sample of 12 fixed-wing aircraft by considering a variety of factors, such as the type, age, and manufacturer of the aircraft, among other factors, and analyzed condition and availability data, O&S costs, and sustainment challenges from fiscal year 2011 through March 2017 for each aircraft in a “Sustainment Quick Look.” GAO also analyzed policies, strategies, and plans, and interviewed Navy and Air Force officials in program offices, squadrons, and maintenance depots. Between fiscal years 2011 and 2016, the Air Force and Navy generally did not meet aircraft availability goals, and operating and support (O&S) cost trends for GAO's selected fixed-wing aircraft varied. Specifically, GAO found that availability declined for 6 of 12 aircraft—3 from each service—between fiscal years 2011 and 2016; availability fell short of goals for 9 of 12 aircraft in fiscal year 2016; and O&S costs increased for 5 of the aircraft, and maintenance costs—the largest share—increased for 8 of 12 aircraft. GAO found, and officials agreed, that these aircraft face similar challenges. a Obsolescence means a part is unavailable due to its lack of usefulness or it is no longer current or available for production. b Diminishing manufacturing sources is a loss or impending loss of manufacturers or suppliers. The Air Force and Navy have documented sustainment strategies for some aircraft, regularly reviewed sustainment metrics, and implemented improvement plans. The Air Force has documented sustainment strategies for all aircraft GAO reviewed; however, the Navy has not documented or updated its sustainment strategies for four aircraft. Specifically, the Navy does not have a documented sustainment strategy for the C-2A, and has not updated the strategies for the E2C, EA-18G, and F/A-18A-D since before 2012. The Navy is in the process of documenting its strategies, but Department of Defense (DOD) policy is unclear on whether a sustainment strategy is required and has to be updated every 5 years for weapon systems that are in the operations and support phase of their life cycle (i.e., legacy systems). Also, Navy guidance does not specify a requirement for legacy systems, although Air Force guidance does. Clarifying the requirements to document sustainment strategies for legacy systems, and documenting those strategies, would add additional visibility over the availability and O&S costs of DOD aircraft and any associated sustainment risks. This is a public version of a sensitive report issued in April 2018. Information on aircraft availability and other related information was deemed to be sensitive and has been omitted from this report. GAO is recommending that DOD and the Navy update or issue new policy and guidance clarifying the requirements for documenting sustainment strategies for legacy weapon systems. DOD concurred with the recommendations."
+    ],
+    "max_new_tokens": 512
+  },
+  {
+    "dataset": "gov_report",
+    "sample_id": "cbc3f7193f9fa873108c6ccc73a558eb1d2a97b249a1f930",
+    "source_index": 2,
+    "input_sha256": "f9e37f01bd2239287103de65aec89cdb1d43f33010d94c33e81081b8b14dff94",
+    "prompt_tokens_before_truncation": 9629,
+    "prompt_tokens": 9639,
+    "truncated": false,
+    "answers": [
+      "Wildlife trafficking—the poaching and illegal trade of plants, fish, and wildlife—is a multibillion-dollar, global criminal activity that imperils thousands of species. FWS and NOAA enforce laws prohibiting wildlife trafficking that authorize the agencies to pay financial rewards for information about such illegal activities. GAO was asked to review FWS's and NOAA's use of financial rewards to combat wildlife trafficking. This report examines (1) laws that authorize FWS and NOAA to pay rewards for information on wildlife trafficking and the extent to which the agencies paid such rewards from fiscal years 2007 through 2017, (2) the agencies' reward policies, (3) information available to the public on rewards, and (4) the extent to which the agencies reviewed the effectiveness of their use of rewards. GAO reviewed laws, examined FWS and NOAA policies and public communications on rewards, analyzed agency reward data for fiscal years 2007 through 2017 and assessed their reliability, interviewed FWS and NOAA officials, and compared agency policies and public communications on rewards to federal internal control standards. Multiple laws—such as the Endangered Species Act and Lacey Act—authorize the Departments of the Interior's U.S. Fish and Wildlife Service (FWS) and Commerce's National Oceanic and Atmospheric Administration (NOAA) to pay rewards for information on wildlife trafficking. FWS and NOAA reported paying few rewards from fiscal years 2007 through 2017. Specifically, the agencies collectively reported paying 27 rewards, totaling $205,500. Agency officials said that the information was complete to the best of their knowledge but could not sufficiently assure that this information represented all of their reward payments. FWS and NOAA have reward policies that outline the general process for preparing reward proposals, but FWS's policy does not specify factors for its agents to consider when developing proposed reward amounts. Some FWS agents GAO interviewed said that in developing proposals, they did not know whether their proposed reward amounts were enough, too little, or too much. By augmenting its policy to specify factors for agents to consider, FWS can better ensure that its agents have the necessary quality information to prepare proposed reward amounts, consistent with federal internal control standards. FWS and NOAA communicate little information to the public on rewards. For example, most agency websites did not indicate that providing information on wildlife trafficking could qualify for a reward. This is inconsistent with federal standards that call for management to communicate quality information so that external parties can help achieve agency objectives. FWS and NOAA officials said they have not communicated general reward information because of workload concerns, but they said it may be reasonable to provide more information in some instances. By developing plans to communicate more reward information to the public, the agencies can improve their chances of obtaining information on wildlife trafficking that they otherwise might not receive. FWS and NOAA have not reviewed the effectiveness of their use of rewards. The agencies have not done so because using rewards has generally not been a priority. FWS and NOAA officials agreed that such a review would be worthwhile but provided no plans for doing so. By reviewing the effectiveness of their use of rewards, FWS and NOAA can identify opportunities to improve the usefulness of rewards as a tool for combating wildlife trafficking. GAO is making seven recommendations, including that FWS and NOAA track reward information, FWS augment its reward policy to specify factors for agents to consider when developing proposed reward amounts, FWS and NOAA develop plans to communicate more reward information to the public, and FWS and NOAA review the effectiveness of their reward use. Both agencies concurred with these recommendations."
+    ],
+    "max_new_tokens": 512
+  },
+  {
+    "dataset": "gov_report",
+    "sample_id": "1b6b47fa851187e2eb91a700bfab672580beef5a1671dd5c",
+    "source_index": 3,
+    "input_sha256": "4799745f5eb6895a794895b40fd4a807796b7b51312e899351743c04d565e93d",
+    "prompt_tokens_before_truncation": 8655,
+    "prompt_tokens": 8665,
+    "truncated": false,
+    "answers": [
+      "\"Cross-border data flows\" refers to the movement or transfer of information between computer servers across national borders. Such data flows enable people to transmit information for online communication, track global supply chains, share research, provide cross-border services, and support technological innovation. Ensuring open cross-border data flows has been an objective of Congress in recent trade agreements and in broader U.S. international trade policy. The free flow of personal data, however, has raised security and privacy concerns. U.S. trade policy has traditionally sought to balance the need for cross-border data flows, which often include personal data, with online privacy and security. Some stakeholders, including some Members of Congress, believe that U.S. policy should better protect personal data privacy and security, and have introduced legislation to set a national policy. Other policymakers and analysts are concerned about increasing foreign barriers to U.S. digital trade, including data flows. Recent incidents of private information being shared or exposed have heightened public awareness of the risks posed to personal data stored online. Consumers' personal online data is valued by organizations for a variety of reasons, such as analyzing marketing information and easing the efficiency of transactions. Concerns are likely to grow as the amount of online data organizations collect and the level of global data flows expand. As Congress assesses policy options, it may further explore the link between cross-border data flows, online privacy, and trade policy; the trade implications of a comprehensive data privacy policy; and the U.S. role in establishing best practices and binding trade rules that seek to balance public policy priorities. There is no globally accepted standard or definition of data privacy in the online world, and there are no comprehensive binding multilateral rules specifically about cross-border data flows and privacy. Several international organizations, including the Organisation for Economic Co-operation and Development (OECD), G-20, and Asia-Pacific Economic Cooperation (APEC) forum, have sought to develop best practice guidelines or principles related to privacy and cross-border data flows, although none are legally binding. U.S. and other recent trade agreements are establishing new enforceable trade rules and disciplines. Countries vary in their data policies and laws; some focus on limiting access to online information by restricting the flow of data beyond a country's borders, aiming to protect domestic interests (e.g., constituents' privacy). However, these policies can also act as protectionist measures. The EU and China, two top U.S. trading partners, have established prescriptive rules on cross-border data flows and personal data from different perspectives. The EU General Data Protection Regulation (GDPR) is driven by privacy concerns; China is focused on security. Their policies affect U.S. firms seeking to do business in those regions, as well as in other markets that emulate the EU and Chinese approaches. Unlike the EU or China, the United States does not broadly restrict cross-border data flows and has traditionally regulated privacy at a sectoral level to cover data, such as health records. U.S. trade policy has sought to balance the goals of consumer privacy, security, and open commerce. The proposed United States-Mexico-Canada Agreement (USMCA) represents the Trump Administration's first attempt to include negotiated trade rules and disciplines on privacy, cross-border data flows, and security in a trade agreement. While the United States and other countries work to define their respective national privacy strategies, many stakeholders seek a more global approach that would allow interoperability between differing national regimes to facilitate and remove discriminatory trade barriers to cross-border data flows; this could offer an opportunity for the United States to lead the global conversation. Although Congress has examined issues surrounding online privacy and has considered multiple bills, there is not yet consensus on a comprehensive U.S. online data privacy policy. Congress may weigh in as the Administration seeks to define U.S. policy on data privacy and engages in international negotiations on cross-border data flows."
+    ],
+    "max_new_tokens": 512
+  },
+  {
+    "dataset": "gov_report",
+    "sample_id": "14fff932d702f49ba8037e3853528f5c24952fea97e12075",
+    "source_index": 4,
+    "input_sha256": "41a5302e1b1c7c815561108fdd1dc27539081a31c1c4e9aefed60a128dba725c",
+    "prompt_tokens_before_truncation": 12266,
+    "prompt_tokens": 12276,
+    "truncated": false,
+    "answers": [
+      "There are five major sources of airport capital development funding: the federal Airport Improvement Program (AIP); local passenger facility charges (PFCs) imposed pursuant to federal law; tax-exempt bonds; state and local grants; and airport operating revenue from tenant lease and other revenue-generating activities such as landing fees. Federal involvement is most consequential in AIP, PFCs, and tax-exempt financing. The AIP has been providing federal grants for airport development and planning since the passage of the Airport and Airway Improvement Act of 1982 (P.L. 97-248). AIP funding is usually spent on projects that support aircraft operations such as runways, taxiways, aprons, noise abatement, land purchase, and safety or emergency equipment. The funds obligated for AIP are drawn from the airport and airway trust fund, which is supported by a variety of user fees and fuel taxes. Different airports use different combinations of these sources depending on the individual airport's financial situation and the type of project being considered. Although smaller airports' individual grants are of much smaller dollar amounts than the grants going to large and medium hub airports, the smaller airports are much more dependent on AIP to meet their capital needs. This is particularly the case for noncommercial airports, which received over 25% of AIP grants distributed in FY2018. Larger airports are much more likely to issue tax-exempt bonds or finance capital projects with the proceeds of PFCs. The FAA Reauthorization Act of 2018 (P.L. 115-254) provided annual AIP funding of $3.35 billion from the airport and airway trust fund for five years from FY2019 to FY2023. The act left the basic structure of AIP unchanged, but authorized supplemental annual funding of over $1 billion from the general fund to the AIP discretionary funds, starting with $1.02 billion in FY2019, and required at least 50% of the additional discretionary funds to be available to nonhub and small hub airports. The act included a provision permitting eligible projects at small airports (including those in the State Block Grant Program) to receive a 95% federal share of project costs (otherwise capped at 90%), if such projects are determined to be successive phases of a multiphase construction project that received a grant in FY2011. The 2018 reauthorization expanded the number of states that could participate in the State Block Grant Program from 10 to 20 and also expanded the existing airport privatization pilot program (now renamed the Airport Investment Partnership Program) to include more than 10 airports. The law included a provision that forbids states or local governments from levying or collecting taxes on a business at an airport that \"is not generally imposed on sales or services by that State, political subdivision, or authority unless wholly utilized for airport or aeronautical purposes.\" The airport improvement issues Congress generally faces in the context of FAA reauthorization include the following: Should airport development funding be increased or decreased? Should the $4.50 ceiling on PFCs be eliminated, raised, or kept as it is? Could AIP be restructured to address congestion at the busiest U.S. airports, or should a large share of AIP resources continue to go to noncommercial airports that lack other sources of funding? Should Congress set tighter limits on the purposes for which AIP and PFC funds may be spent? This report provides an overview of airport improvement financing, with emphasis on AIP and the related passenger facility charges. It also discusses some ongoing airport issues that are likely to be included in a future FAA reauthorization debate."
+    ],
+    "max_new_tokens": 512
+  },
+  {
+    "dataset": "gov_report",
+    "sample_id": "cde0dd328fcfff44d9709e0e3b6e07100b1d23ebc8208f78",
+    "source_index": 5,
+    "input_sha256": "117e0fabc5995410b61a2e49103c923b0eeaa8b56dccfb8e7ccc945e21913c4f",
+    "prompt_tokens_before_truncation": 7777,
+    "prompt_tokens": 7787,
+    "truncated": false,
+    "answers": [
+      "Between fiscal years 2005 and 2016, Congress annually appropriated between $2.5 to $9.6 billion in MILCON funding for the active component of the U.S. military to use for projects worldwide. Reliable project construction cost estimates are of great importance, since those estimates drive these appropriations. House Report 114-537 accompanying a proposed bill authorizing national defense activities for fiscal year 2017 included a provision for GAO to report on DOD's MILCON cost estimating. This report examines the extent to which (1) the active component obligated and expended the MILCON appropriations received during fiscal years 2005-2016, (2) the active component reprogrammed MILCON appropriations during fiscal years 2010 through 2016, and (3) DOD's MILCON cost estimates are reliable for selected projects and DOD's guidance for developing estimates fully incorporates the steps needed for developing reliable estimates. GAO analyzed the active components' MILCON execution data and reviewed DOD's guidance for cost estimating and compared it with the best practices identified in GAO's Cost Estimating and Assessment Guide . During fiscal years 2005 through 2016, Congress appropriated about $66 billion in military construction funds (MILCON) to the active duty Army, Navy, and Air Force (referred to as the active component) for projects. As of September 30, 2016, the active component had obligated all but about $5.1 billion and expended all but about $11 billion of those funds. Of the $5.1 billion remaining unobligated, about $4.6 billion was still available to be obligated because MILCON appropriations are generally available for new obligations for 5 years. According to Department of Defense (DOD) officials, available but unobligated amounts no longer needed may be either taken back by Congress or reprogrammed to other MILCON projects that the active component identifies as needing additional funding. During fiscal years 2010 through 2016, the active component reprogrammed about $1.6 billion in MILCON appropriations to fund emergency projects, projects that were authorized but did not receive specific appropriations, and projects needing additional funding. Of this amount, the Army reprogrammed about $789 million; the Navy, about $535 million; and the Air Force, about $295 million. DOD's guidance does not fully incorporate the steps needed for developing reliable estimates and the estimates for three projects that GAO reviewed were not reliable. Specifically, two of the three high-value projects GAO examined experienced a more than 30-percent increase from the initial cost estimates submitted to Congress. GAO determined that DOD cost estimators did not follow all the best practices associated with the four characteristics—comprehensive, well-documented, accurate, and credible—of a reliable estimate for these projects. GAO's Cost Estimating and Assessment Guide identifies 12 steps that, if used, are more likely to result in reliable and valid cost estimates. However, as shown below, DOD's construction guidance—the Unified Facilities Criteria—does not include all of these steps. Until DOD incorporates these steps, DOD and congressional decision-makers may not have reliable estimates to inform their decisions regarding appropriations and the oversight of projects. GAO recommends that DOD ensure that its cost estimating guidance fully incorporate the steps needed for developing reliable cost estimates. DOD partially concurred with GAO's recommendation and stated that it will issue revised cost guidance in fiscal year 2019 that more fully incorporates those steps that would benefit the military construction program."
+    ],
+    "max_new_tokens": 512
+  },
+  {
+    "dataset": "gov_report",
+    "sample_id": "81e845f35acd55c1f6b4edda428a0a52fd22bade5be9cf13",
+    "source_index": 6,
+    "input_sha256": "75eda068cdf30a97d17f47b6eeb6beb05b0e01f03bc35786ad5613cc09b9ffc5",
+    "prompt_tokens_before_truncation": 4172,
+    "prompt_tokens": 4182,
+    "truncated": false,
+    "answers": [
+      "Education provided over $122 billion in grants, loans and work study funds to help students pay for college at about 6,000 schools in fiscal year 2017. Education is responsible for certifying that these schools are eligible for and capable of properly administering federal student aid funds. Schools are required to submit an annual compliance audit that provides information on schools' administrative capability, which Education considers in its school certification decisions. GAO was asked to review Education's process for certifying schools to receive federal student aid. This report examines (1) how Education certifies schools to administer federal student aid and how frequently schools are approved and denied certification; and (2) the role of compliance audits in the certification process and what, if any, steps Education has taken to address the quality of the audit information. GAO analyzed data on school certification outcomes for calendar years 2006-2017 (when GAO determined data were most reliable); reviewed data and reports summarizing Education's reviews of compliance audit quality for fiscal years 2006-2017; reviewed a non-generalizable sample of 21 school certification decisions from fiscal years 2015 and 2016, selected for a mix of decisions, school characteristics, and geographic regions; examined relevant federal laws, regulations, policy manuals and guidance; and interviewed Education officials. The Department of Education (Education) is responsible for evaluating a variety of information to determine whether a postsecondary school should be certified to administer federal student aid programs, and agency data show that it approves most schools that apply. Education procedures instruct regional office staff to review school policies, financial statements, and compliance audits prepared by independent auditors, among other things. Education can certify schools to participate in federal student aid programs for up to 6 years, or it can provisionally certify them for less time if it determines that increased oversight is needed—for example, when a school applies for certification for the first time or when it has met some but not all requirements to be fully certified. In calendar years 2006 through 2017, Education fully or provisionally approved most schools applying for initial or recertification to receive federal student aid (see figure). Note: Schools applying for certification for the first time and approved are placed in provisional certification. In deciding whether to certify schools, Education particularly relies on compliance audits for direct information about how well schools are administering federal student aid, and Education's offices of Federal Student Aid and Inspector General have taken steps to address audit quality. The Inspector General annually selects a sample of compliance audits for quality reviews based on risk factors, such as auditors previously cited for errors. In fiscal years 2006 through 2017, 59 percent of the 739 selected audits received failing scores. Audits that fail must be corrected; if not, the school generally must repay federal student aid covered by the audit. Because higher risk audits are selected for review, Inspector General officials said they cannot assess the overall prevalence of quality problems in compliance audits. These two Education offices have taken steps to improve audit quality. For example, the Inspector General offered additional training to auditors on its revised 2016 audit guide and provided guidance to schools on hiring an auditor, while Federal Student Aid created a working group to strengthen its procedures for addressing poor quality compliance audits. Education's efforts to address audit quality could help ensure that these audits provide reliable information for school certification decisions. GAO is not making recommendations in this report."
+    ],
+    "max_new_tokens": 512
+  },
+  {
+    "dataset": "gov_report",
+    "sample_id": "a6d311b6722cdf0fd1e95f07371162c59183a53db1fc5f62",
+    "source_index": 7,
+    "input_sha256": "a53837b3bf863922d7a9151c88524cec81393dbe2d9378df844517451678453d",
+    "prompt_tokens_before_truncation": 15389,
+    "prompt_tokens": 15399,
+    "truncated": false,
+    "answers": [
+      "Federal agencies are dependent on information systems to carry out operations. The risks to these systems are increasing as security threats evolve and become more sophisticated. To reduce the risk of a successful cyberattack, agencies can deploy intrusion detection and prevention capabilities on their networks and systems. GAO first designated federal information security as a government-wide high-risk area in 1997. In 2015, GAO expanded this area to include protecting the privacy of personally identifiable information. Most recently, in September 2018, GAO updated the area to identify 10 critical actions that the federal government and other entities need to take to address major cybersecurity challenges. The federal approach and strategy for securing information systems is grounded in the provisions of the Federal Information Security Modernization Act of 2014 and Executive Order 13800. The act requires agencies to develop, document, and implement an agency-wide program to secure their information systems. The Executive Order, issued in May 2017, directs agencies to use the National Institute of Standards and Technology's cybersecurity framework to manage cybersecurity risks. The Federal Cybersecurity Enhancement Act of 2015 contained a provision for GAO to report on the effectiveness of the government's approach and strategy for securing its systems. GAO determined (1) the reported effectiveness of agencies' implementation of the government's approach and strategy; (2) the extent to which DHS and OMB have taken steps to facilitate the use of intrusion detection and prevention capabilities to secure federal systems; and (3) the extent to which agencies reported implementing capabilities to detect and prevent intrusions. To address these objectives, GAO analyzed OMB reports related to agencies' information security practices including OMB's annual report to Congress for fiscal year 2017. GAO also analyzed and summarized agency-reported security performance metrics and IG-reported information for the 23 civilian CFO Act agencies. In addition, GAO evaluated plans, reports, and other documents related to DHS intrusion detection and prevention programs, and interviewed OMB, DHS, and agency officials. The 23 civilian agencies covered by the Chief Financial Officers Act of 1990 (CFO Act) have often not effectively implemented the federal government's approach and strategy for securing information systems (see figure below). Until agencies more effectively implement the government's approach and strategy, federal systems will remain at risk. To illustrate: As required by Office of Management and Budget (OMB), inspectors general (IGs) evaluated the maturity of their agencies' information security programs using performance measures associated with the five core security functions—identify, protect, detect, respond, and recover. The IGs at 17 of the 23 agencies reported that their agencies' programs were not effectively implemented. IGs also evaluated information security controls as part of the annual audit of their agencies' financial statements, identifying material weaknesses or significant deficiencies in internal controls for financial reporting at 17 of the 23 civilian CFO Act agencies. Chief information officers (CIOs) for 17 of the 23 agencies reported not meeting all elements of the government's cybersecurity cross-agency priority goal. The goal was intended to improve cybersecurity performance through, among other things, maintaining ongoing awareness of information security, vulnerabilities, and threats; and implementing technologies and processes that reduce malware risk. Executive Order 13800 directed OMB, in coordination with the Department of Homeland Security (DHS), to assess and report on the sufficiency and appropriateness of federal agencies' processes for managing cybersecurity risks. Using performance measures for each of the five core security functions, OMB determined that 13 of the 23 agencies were managing overall enterprise risks, while the other 10 agencies were at risk. In assessing agency risk by core security function, OMB identified a few agencies to be at high risk (see figure at the top of next page). DHS and OMB facilitated the use of intrusion detection and prevention capabilities to secure federal agency systems, but further efforts remain. For example, in response to prior GAO recommendations, DHS had improved the capabilities of the National Cybersecurity Protection System (NCPS), which is intended to detect and prevent malicious traffic from entering agencies' computer networks. However, the system still had limitations, such as not having the capability to scan encrypted traffic. The department was also in the process of enhancing the capabilities of federal agencies to automate network monitoring for malicious activity through its Continuous Diagnostics and Mitigation (CDM) program. However, the program was running behind schedule and officials at most agencies indicated the need for additional training and guidance. Further, the Federal CIO issued a mandated report assessing agencies' intrusion detection and prevention capabilities, but the report did not address required information, such as the capability of NCPS to detect advanced persistent threats, and a cost/benefit comparison of capabilities to commercial technologies and tools. Selected agencies had not consistently implemented capabilities to detect and prevent intrusions into their computer networks. Specifically, the agencies told GAO that they had not fully implemented required actions for protecting email, cloud services, host-based systems, and network traffic from malicious activity. For example, 21 of 23 agencies had not, as of September 2018, sufficiently enhanced email protection through implementation of DHS' directive on enhanced email security. In addition, less than half of the agencies that use cloud services reported monitoring these services. Further, most of the selected 23 agencies had not fully implemented the tools and services available through the first two phases of DHS's CDM program. Until agencies more thoroughly implement capabilities to detect and prevent intrusions, federal systems and the information they process will be vulnerable to malicious threats. GAO is making two recommendations to DHS, to among other things, coordinate with agencies to identify additional needs for training and guidance. GAO is also making seven recommendations to OMB to, among other things, direct the Federal CIO to update the mandated report with required information, such as detecting advanced persistent threats. DHS concurred with GAO's recommendations. OMB did not indicate whether it concurred with the recommendations or not."
+    ],
+    "max_new_tokens": 512
+  },
+  {
+    "dataset": "gov_report",
+    "sample_id": "6f6b6187fc270471899d0ce86ec305328fcee442361be864",
+    "source_index": 8,
+    "input_sha256": "66d37bbed373dd1eec297986d2cd23686b768024407bc8843e8078dc54abfea1",
+    "prompt_tokens_before_truncation": 3932,
+    "prompt_tokens": 3942,
+    "truncated": false,
+    "answers": [
+      "Since 1993, the U.S. government has committed more than $5 billion in bilateral assistance to the Palestinians in the West Bank and Gaza. According to the Department of State, this assistance to the Palestinians promotes U.S. economic and political foreign policy interests by supporting Middle East peace negotiations and financing economic stabilization programs. USAID is primarily responsible for administering ESF assistance to the West Bank and Gaza. Appropriations acts for fiscal years 2015 and 2016 included provisions for GAO to review the treatment, handling, and uses of funds provided through the ESF for assistance to the West Bank and Gaza. This report examines (1) the status of ESF assistance and projects provided to the West Bank and Gaza for fiscal years 2015 and 2016, including project assistance and payments to PA creditors, and (2) the extent to which USAID conducted required vetting of PA creditors to ensure that this assistance would not support entities or individuals associated with terrorism and assessed PA ministries' capacity to use ESF assistance as intended. GAO reviewed relevant laws and regulations and USAID financial data, policies, procedures, and documents. GAO also interviewed USAID and State Department officials. As of March 2018, the U.S. Agency for International Development (USAID) had allocated about $545 million of funding appropriated to the Economic Support Fund (ESF) for assistance in the West Bank and Gaza for fiscal years 2015 and 2016. USAID obligated about $544 million (over 99 percent) and expended about $351 million (over 64 percent) of the total allocations. Project assistance accounted for approximately $399 million of the obligated funds, while payments to Palestinian Authority (PA) creditors accounted for $145 million (see figure). USAID's obligations for project assistance in the West Bank and Gaza for fiscal years 2015 and 2016 supported three development objectives—Economic Growth and Infrastructure ($239 million), Investing in the Next Generation ($107 million), and Governance and Civic Engagement (about $25 million). In fiscal years 2015 and 2016, USAID made payments directly to PA creditors—two Israeli fuel companies, to cover debts for petroleum purchases, and a local Palestinian bank, to pay off a line of credit used for PA medical referrals to six hospitals in the East Jerusalem Hospital network. USAID vetted PA creditors to ensure that the program assistance would not provide support to entities or individuals associated with terrorism and also conducted external assessments and financial audits of PA ministries of Health and Finance and Planning. USAID documentation showed that, as required, officials checked the vetting status of each PA creditor within 12 months before USAID signed its debt relief grant agreements with the PA. In addition, although USAID determined that it was not legally required to assess the PA Ministry of Health's medical referral services and the Ministry of Finance and Planning's petroleum procurement system, the agency commissioned external assessments of both ministries. These assessments found some weaknesses in both ministries' systems; however, USAID mission officials stated that these weaknesses did not affect USAID debt relief payments to the PA creditors. Nevertheless, USAID took additional steps to mitigate the identified weaknesses. For example, a USAID contractor worked with the Ministry of Health to update, revise, and approve guidelines for medical referrals. In addition, USAID commissioned financial audits of the debt relief grant agreements between USAID and the PA for direct payments to PA creditors in fiscal year 2015 and 2016. The audits did not identify any ineligible costs, reportable material weaknesses in internal control, or material instances of noncompliance with the terms of the agreements. GAO is not making recommendations in this report."
+    ],
+    "max_new_tokens": 512
+  },
+  {
+    "dataset": "gov_report",
+    "sample_id": "717196b201b32c40650297b1168ac3e629cdae29538b8cd4",
+    "source_index": 9,
+    "input_sha256": "a61d497448791f93754c7537dc26aeecf61b63202ea94d4013782e5c00d89a4f",
+    "prompt_tokens_before_truncation": 14647,
+    "prompt_tokens": 14657,
+    "truncated": false,
+    "answers": [
+      "Congressional interest in small business access to capital has increased in recent years because of concerns that small businesses might be prevented from accessing sufficient capital to enable them to start, continue, or expand operations and create jobs. Some have argued that the federal government should provide additional resources to assist small businesses. Others worry about the long-term adverse economic effects of spending programs that increase the federal deficit. They advocate business tax reduction, reform of financial credit market regulation, and federal fiscal restraint as the best means to assist small businesses and create jobs. Several laws were enacted during the 111th Congress to enhance small business access to capital. For example, P.L. 111-5, the American Recovery and Reinvestment Act of 2009 (ARRA), provided the Small Business Administration (SBA) an additional $730 million, including funding to temporarily subsidize SBA fees and increase the 7(a) loan guaranty program's maximum loan guaranty percentage to 90%. P.L. 111-240, the Small Business Jobs Act of 2010, authorized the Secretary of the Treasury to establish a $30 billion Small Business Lending Fund (SBLF), in which $4.0 billion was issued, to encourage community banks with less than $10 billion in assets to increase their lending to small businesses. It also authorized a $1.5 billion State Small Business Credit Initiative to provide funding to participating states with small business capital access programs, numerous changes to the SBA's loan guaranty and contracting programs, funding to continue the SBA's fee subsidies and the 7(a) program's 90% maximum loan guaranty percentage through December 31, 2010, and about $12 billion in tax relief for small businesses. P.L. 111-322, the Continuing Appropriations and Surface Transportation Extensions Act, 2011, authorized the SBA to continue its fee subsidies and the 7(a) program's 90% maximum loan guaranty percentage through March 4, 2011, or until available funding was exhausted, which occurred on January 3, 2011. This report focuses on the SBLF. It opens with a discussion of the supply and demand for small business loans. The SBLF's advocates claimed the SBLF was needed to enhance the supply of small business loans. The report then examines other arguments presented both for and against the program. Advocates argued that the SBLF would increase lending to small businesses and, in turn, create jobs. Opponents contended that the SBLF could lose money, lacked sufficient oversight provisions, did not require lenders to increase their lending to small businesses, could serve as a vehicle for Troubled Asset Relief Program (TARP) recipients to effectively refinance their TARP loans on more favorable terms with little or no resulting benefit for small businesses, and could encourage a failing lender to make even riskier loans to avoid higher dividend payments. The report concludes with an examination of the program's implementation and a discussion of bills introduced to amend the SBLF. For example, during the 112th Congress, S. 681, the Greater Accountability in the Lending Fund Act of 2011, would have limited the program's authority to 15 years from enactment and prohibited TARP recipients from participating in the program. H.R. 2807, the Small Business Leg-Up Act of 2011, would have transferred any unobligated and repaid funds from the SBLF to the Community Development Financial Institutions Fund \"to increase the availability of credit for small businesses.\" H.R. 3147, the Small Business Lending Extension Act, would have extended the Department of the Treasury's investment authority from one year to two years. During the 113th Congress, H.R. 2474, the Community Lending and Small Business Jobs Act of 2013, would have transferred any unobligated and repaid funds from the SBLF to the Community Development Financial Institutions Fund."
+    ],
+    "max_new_tokens": 512
+  },
+  {
+    "dataset": "gov_report",
+    "sample_id": "a6b66279eee0135505b08462e35738e68080a9214e36f710",
+    "source_index": 10,
+    "input_sha256": "df260c99239e12b700c6fb6542bfc84dcdbf3ca3fa2495bfdd929149f8eb2744",
+    "prompt_tokens_before_truncation": 18664,
+    "prompt_tokens": 18674,
+    "truncated": false,
+    "answers": [
+      "The current and planned size and composition of the Navy, the rate of Navy ship procurement, and the prospective affordability of the Navy's shipbuilding plans have been oversight matters for the congressional defense committees for many years. On December 15, 2016, the Navy released a force-structure goal that calls for achieving and maintaining a fleet of 355 ships of certain types and numbers. The 355-ship force-level goal is the result of a Force Structure Assessment (FSA) conducted by the Navy in 2016. The Navy states that a new FSA is now underway as the successor to the 2016 FSA. This new FSA, Navy officials state, is to be completed by the end of 2019. Navy officials have suggested in their public remarks that this new FSA could change the 355-ship figure, the planned mix of ships, or both. The Navy's proposed FY2020 budget requests funding for the procurement of 12 new ships, including one Gerald R. Ford (CVN-78) class aircraft carrier, three Virginia-class attack submarines, three DDG-51 class Aegis destroyers, one FFG(X) frigate, two John Lewis (TAO-205) class oilers, and two TATS towing, salvage, and rescue ships. The Navy's FY2020 five-year (FY2020-FY2024) shipbuilding plan includes 55 new ships, or an average of 11 new ships per year. The Navy's FY2020 30-year (FY2020-FY2049) shipbuilding plan includes 304 ships, or an average of about 10 per year. If the FY2020 30-year shipbuilding plan is implemented, the Navy projects that it will achieve a total of 355 ships by FY2034. This is about 20 years sooner than projected under the Navy's FY2019 30-year shipbuilding plan—an acceleration primarily due to a decision announced by the Navy in April 2018, after the FY2019 plan was submitted, to increase the service lives of all DDG-51 destroyers to 45 years. Although the Navy projects that the fleet will reach a total of 355 ships in FY2034, the Navy in that year and subsequent years will not match the composition called for in the FY2016 FSA. One issue for Congress is whether the new FSA that the Navy is conducting will change the 355-ship force-level objective established by the 2016 FSA and, if so, in what ways. Another oversight issue for Congress concerns the prospective affordability of the Navy's 30-year shipbuilding plan. Decisions that Congress makes regarding Navy force structure and shipbuilding plans can substantially affect Navy capabilities and funding requirements and the U.S. shipbuilding industrial base."
+    ],
+    "max_new_tokens": 512
+  },
+  {
+    "dataset": "gov_report",
+    "sample_id": "0a835927d5d2333bd2525d5f599e81781d951896cc64ad49",
+    "source_index": 11,
+    "input_sha256": "23273c219019414effba643ee724c0baa7f787786bd0e41fea216637968f4bb1",
+    "prompt_tokens_before_truncation": 10334,
+    "prompt_tokens": 10344,
+    "truncated": false,
+    "answers": [
+      "SBA's 7(a) program is required to serve creditworthy small business borrowers who cannot obtain credit through a conventional lender at reasonable terms. The Joint Explanatory Statement of the Consolidated Appropriations Act, 2017 includes a provision for GAO to review the 7(a) program. This report discusses, among other things, (1) how SBA monitors lenders' compliance with the credit elsewhere requirement, (2) the extent to which SBA evaluates trends in lender credit elsewhere practices, and (3) lenders' views on the credit elsewhere criteria for 7(a) loans. GAO analyzed SBA data on 7(a) loans approved for fiscal years 2007–2016, the latest available, and reviewed literature on small business lending; reviewed standard operating procedures, other guidance, and findings from SBA reviews performed in fiscal year 2016; and interviewed lender associations and a nonrepresentative sample of 7(a) lenders selected that concentrated on larger lenders. For its 7(a) loan program, the Small Business Administration (SBA) has largely delegated authority to lenders to make 7(a) loan determinations for those borrowers who cannot obtain conventional credit at reasonable terms elsewhere. To monitor lender compliance with the “credit elsewhere” requirement SBA primarily uses on-site reviews conducted by third-party contractors with SBA participation and oversight, and other reviews. According to SBA guidance, lenders making 7(a) loans must take steps to ensure and document that borrowers meet the program's credit elsewhere requirement. However, GAO noted a number of concerns with SBA's monitoring efforts. Specifically, GAO found the following: Over 40 percent (17 of 40) of the on-site lender reviews performed in fiscal year 2016 identified lender noncompliance with the requirement. On-site reviewers identified several factors, such as weakness in lenders' internal control processes that were the cause for lender noncompliance. Most on-site reviewers did not document their assessment of lenders' policies or procedures, because SBA does not require them to do so. As a result SBA does not have information that could help explain the high noncompliance rate. Federal internal control standards state that management should design control activities, including appropriate documentation, and use quality information to achieve the entity's objectives. Without better information on lenders' procedures for complying with the documentation requirement, SBA may be limited in its ability to promote compliance with requirements designed to help ensure that the 7(a) program reaches its target population. SBA does not routinely collect or analyze information on the criteria used by lenders for credit elsewhere justifications. SBA recently began collecting some information on lenders' use of the criteria, but this information is limited, and SBA does not analyze the information that it does collect to better understand lenders' practices. Federal internal control standards state that management should use quality information to achieve the entity's objectives. Without more robust information and analysis, SBA may be limited in its ability to understand how lenders are using the credit elsewhere criteria and identify patterns of use by certain lenders that place them at a higher risk of not reaching borrowers who cannot obtain credit from other sources at reasonable terms. In general, representatives from 8 of 11 lenders that GAO interviewed stated that SBA's credit elsewhere criteria are adequate for determining small business eligibility for the 7(a) program. These criteria help them target their lending to small businesses that would otherwise have difficulty obtaining conventional credit because they are often new businesses or have a shortage of collateral. However, they also said that other factors—such as lender policies and economic conditions—can affect their decisions to offer 7(a) loans. In January 2018, SBA issued revised guidance for the 7(a) program and has provided training on this new guidance to lenders and trade associations. Lenders told GAO they are still in the process of understanding the new requirements. GAO recommends that SBA (1) require its on-site reviewers to document their assessment of lenders' policies and procedures related to the credit elsewhere documentation requirement, (2) collect information on lenders' use of credit elsewhere criteria, and (3) analyze that information to identify trends. SBA generally agreed with the recommendations."
+    ],
+    "max_new_tokens": 512
+  },
+  {
+    "dataset": "gov_report",
+    "sample_id": "7a1cc68b12da91958bd7ebe2c25c69bae3cf95aee04b5e52",
+    "source_index": 12,
+    "input_sha256": "0f2ffcac9568006717dfda858fcba728fabd417390a4d2152b3adf159aca0972",
+    "prompt_tokens_before_truncation": 10812,
+    "prompt_tokens": 10822,
+    "truncated": false,
+    "answers": [
+      "To reform the federal government and make it more efficient and effective, agencies need to use data about program performance. The benefit of collecting performance information is only fully realized when it is used by managers to make decisions aimed at improving results. GAO was asked to review agencies' use of performance information. This report assesses, among other things, the extent to which: (1) 24 agencies' reported use of performance information and related leading practices has changed since 2013 and (2) the Executive Branch has taken actions to enhance the use of performance information. To address the first objective, GAO analyzed results from its 2017 survey of federal managers, and compared them to 2013 results. The survey covered a stratified random sample of 4,395 managers from the 24 Chief Financial Officers Act agencies. The survey had a 67 percent response rate and results can be generalized to the population of managers government-wide and at each agency. For the second objective, GAO reviewed agency documents and interviewed staff from OMB and the PIC. Agencies' reported use of performance information to make decisions, and leading practices that can promote such use, generally has not improved since GAO's last survey of federal managers in 2013. However, GAO's survey results continue to point to certain practices that could help agencies improve managers' use of performance information. For example, as shown in the table below, GAO's survey found that managers whose programs were subject to data-driven reviews (regular reviews used to assess progress on select agency goals) to a greater extent reported statistically significantly greater use of performance information to make decisions. The Executive Branch has begun taking steps to improve the use of performance information within agencies and across the government. For example, In the President's Management Agenda and government-wide reform plan, released in March and June 2018 respectively, the administration acknowledged the need to do more, and announced a goal, among other actions, to improve the use of data in federal decision making. However, the Office of Management and Budget (OMB) and others responsible for this goal have yet to fully develop action plans to hold agencies accountable for achieving it. The Performance Improvement Council (PIC), which is chaired by OMB, has undertaken efforts to improve the use of performance information by, for example, creating a working group on agency performance reviews. But it has not yet taken a systematic approach to identify and share proven practices that led to, or challenges that may be hampering, increased use of performance information by managers. GAO's survey results identified agencies that may have insights into such practices and challenges. More fully developing action plans for the new goal, and identifying and sharing proven practices and challenges, could help ensure the Executive Branch takes further steps to improve the use of performance information by managers within agencies and across the federal government. To improve the use of performance information within agencies and across the federal government, GAO recommends that OMB work with (1) fellow goal leaders to more fully develop action plans for the new goal to improve the use of data and (2) the PIC to prioritize efforts to identify and share proven practices and challenges. OMB had no comments on this report."
+    ],
+    "max_new_tokens": 512
+  },
+  {
+    "dataset": "gov_report",
+    "sample_id": "780de001e250947c102e770515de8b924ff9ee35597b7533",
+    "source_index": 13,
+    "input_sha256": "d1c90d2d2a9cdc0798f540419777249588b3a585bf21328e4f035adbd05db333",
+    "prompt_tokens_before_truncation": 8674,
+    "prompt_tokens": 8684,
+    "truncated": false,
+    "answers": [
+      "Federal agencies are exploring ways to use telework as a tool to reduce the federal footprint and use space more efficiently. GAO was asked to examine the effects of telework on agencies' space-planning efforts. In this report, GAO reviewed: (1) how the 23 civilian CFO Act agencies reported using telework in office space planning; (2) the specific ways selected agencies and GSA used telework in their office space planning; and (3) any challenges the civilian CFO Act agencies faced in using telework in office space planning. GAO surveyed all 23 civilian CFO Act agencies, analyzed each agency's space-planning documents, and Real Property Efficiency Plans . GAO reviewed four agencies in greater detail based on analysis of telework data and other factors. For those four agencies GAO conducted site visits, interviewed officials, and analyzed agency documents. GAO also identified challenges agencies faced in using telework in space planning, based on survey results, agency documents, and interviews. The 23 civilian Chief Financial Officer (CFO) Act agencies reported various ways of considering and using telework as a space-planning tool, by, for example, implementing desk-sharing for employees who telework in order to relinquish leased space, or increasing the number of staff working in an existing space without increasing its size. All of the 23 agencies discussed telework in the context of space planning and achieving greater space efficiencies in either their space-planning documents or Real Property Efficiency Plans . The agencies that used telework as a space-planning tool generally reported implementing smaller or unassigned workstations. Three of the four agencies GAO reviewed in greater detail––the General Services Administration (GSA); the Office of Justice Programs at the Department of Justice; the Centers for Disease Control at the Department of Health and Human Services; and the Bureau of the Fiscal Service at the Department of the Treasury––leveraged telework to reduce or use office space more efficiently. For example, GSA and the Office of Justice Programs used telework to accommodate more employees in a smaller office space as illustrated in figure 1 below. The Centers for Disease Control used telework to accommodate more employees in the same amount of space. The Bureau of the Fiscal Service reduced space without telework by reducing the size of individual workstations. The 23 civilian CFO Act agencies reported several challenges in using telework to reduce space including human capital issues, mission suitability, and measuring cost savings attributable to telework. About two-thirds of the agencies said they would find it helpful to have additional information, assistance, or resources in using telework as a space-planning tool. GSA provides guidance to improve space utilization. However, GAO found that GSA last developed relevant formal guidance in 2006. This information, and that on GSA's telework and space-planning websites, was neither specific nor detailed and therefore of limited assistance to agencies that would like to use telework as a space-planning tool. Additionally, GSA's space-planning tool—the Workplace Investment and Feasibility Tool, intended to help agencies quantify the benefits and costs of telework––remains under development after more than 4 years, and GSA officials have not decided whether to make the tool available to other federal agencies. As such, agencies reported that they lack adequate guidance to determine how best to reduce space or use it more efficiently, and how to assess the benefits and costs of using telework in space planning. GSA concurred with recommendations that GSA should: (1) develop guidance on how agencies can use telework as a strategic space-planning tool and make this guidance readily available and (2) complete and make the Workplace Investment and Feasibility Tool available to federal agencies for use in assessing the benefits and costs of telework."
+    ],
+    "max_new_tokens": 512
+  },
+  {
+    "dataset": "gov_report",
+    "sample_id": "4cb713e43fe0e8e6185cec6d49636297caf933ab15697ef8",
+    "source_index": 14,
+    "input_sha256": "0a11ad7c2c8400b5335ad6a6c909b7aac02405650096baf547a0dcfe8ff1a57e",
+    "prompt_tokens_before_truncation": 18609,
+    "prompt_tokens": 18619,
+    "truncated": false,
+    "answers": [
+      "Federal agencies and the nation's critical infrastructures—such as energy, transportation systems, communications, and financial services—are dependent on information technology systems to carry out operations. The security of these systems and the data they use is vital to public confidence and national security, prosperity, and well-being. The risks to these systems are increasing as security threats evolve and become more sophisticated. GAO first designated information security as a government-wide high-risk area in 1997. This was expanded to include protecting cyber critical infrastructure in 2003 and protecting the privacy of personally identifiable information in 2015. This report provides an update to the information security high-risk area. To do so, GAO identified the actions the federal government and other entities need to take to address cybersecurity challenges. GAO primarily reviewed prior work issued since the start of fiscal year 2016 related to privacy, critical federal functions, and cybersecurity incidents, among other areas. GAO also reviewed recent cybersecurity policy and strategy documents, as well as information security industry reports of recent cyberattacks and security breaches. GAO has identified four major cybersecurity challenges and 10 critical actions that the federal government and other entities need to take to address them. GAO continues to designate information security as a government-wide high-risk area due to increasing cyber-based threats and the persistent nature of security vulnerabilities. GAO has made over 3,000 recommendations to agencies aimed at addressing cybersecurity shortcomings in each of these action areas, including protecting cyber critical infrastructure, managing the cybersecurity workforce, and responding to cybersecurity incidents. Although many recommendations have been addressed, about 1,000 have not yet been implemented. Until these shortcomings are addressed, federal agencies' information and systems will be increasingly susceptible to the multitude of cyber-related threats that exist. GAO has made over 3,000 recommendations to agencies since 2010 aimed at addressing cybersecurity shortcomings. As of August 2018, about 1,000 still needed to be implemented."
+    ],
+    "max_new_tokens": 512
+  },
+  {
+    "dataset": "gov_report",
+    "sample_id": "eaf2acd9c4a757fefc0b0933bd274cccefa900eb9790f6aa",
+    "source_index": 15,
+    "input_sha256": "7c9785ad7a441e61cb23334a6cebbf30574a5bd8a15c5818e3ae9b99b117fc64",
+    "prompt_tokens_before_truncation": 7557,
+    "prompt_tokens": 7567,
+    "truncated": false,
+    "answers": [
+      "GAO has designated DHS management as high risk because of challenges in building a cohesive department. PLCY supports cohesiveness by, among other things, coordinating departmentwide policy and strategy. In the past, however, questions have been raised about PLCY's efficacy. In December 2016, the NDAA codified PLCY's organizational structure, roles, and responsibilities. GAO was asked to evaluate PLCY's effectiveness. This report addresses the extent to which (1) DHS established an organizational structure and processes and procedures that position PLCY to be effective, (2) DHS and PLCY have ensured alignment of workforce with priorities, and (3) PLCY has engaged relevant component staff to help identify and respond to emerging needs. GAO analyzed the NDAA, documents describing specific responsibilities, and departmentwide policies and strategies. GAO also interviewed officials in PLCY and all eight operational components. According to our analysis and interviews with operational components, the Department of Homeland Security's (DHS) Office of Strategy, Policy, and Plans' (PLCY) organizational structure and efforts to lead and coordinate departmentwide and crosscutting strategies—a key organizational objective–have been effective. For example, PLCY's coordination efforts for a strategy and policy executive steering committee have been successful, particularly for strategies. However, PLCY has encountered challenges leading and coordinating efforts to develop, update, or harmonize policies that affect multiple DHS components. In large part, these challenges are because DHS does not have clearly-defined roles and responsibilities with accompanying processes and procedures to help PLCY lead and coordinate policy in a predictable, repeatable, and accountable manner. Until PLCY's roles and responsibilities for policy are more clearly defined and corresponding processes and procedures are in place, situations where the lack of clarity hampers PLCY's effectiveness in driving policy are likely to continue. Development of a delegation of authority, which involves reaching agreement about PLCY's roles and responsibilities and clearly documenting them, had been underway. However, it stalled due to changes in department leadership. As of May 2018, the effort had been revived, but it is not clear whether and when DHS will finalize it. PLCY does some workforce planning as part of its annual budgeting process, but does not systematically apply key principles of the DHS Workforce Planning Guide to help ensure that PLCY's workforce aligns with its and DHS's priorities and goals. According to PLCY officials, the nature of its mission requires a flexible staffing approach. As such, a portion of the staff functions as generalists who can be assigned to meet the needs of different situations, including unexpected changing priorities due to an emerging need. However, shifting short-term priorities requires tradeoffs, which may divert attention and resources from longer-term priorities. As of June 5, 2018, PLCY also had a number of vacancies in key leadership positions, which further limited attention to certain priorities. According to PLCY officials, PLCY recently began a review to identify the office's authorities in the National Defense Authorization Act for Fiscal Year 2017 (NDAA) and other statutes, compare these authorities to the current organization and operations, and address any workforce capacity gaps. Employing workforce planning principles—in particular, systematic identification of workforce demand, capacity gaps, and strategies to address them—consistent with the DHS Workforce Planning Guide could better position PLCY to use its workforce as effectively as possible under uncertain conditions and to communicate effectively with DHS leadership about tradeoffs. Officials from PLCY and DHS operational components praised existing mechanisms to coordinate and communicate at the senior level, especially about strategy, but component officials identified opportunities to better connect PLCY and component staff to improve communication flow about emerging policy and strategy needs. Among the ideas offered by component officials to enhance communication and collaboration were holding routine small-group meetings, creating forums for periodic knowledge sharing, and maintaining accurate and up-to-date contact information for all staff-level stakeholders. GAO is making four recommendations. DHS concurred with three recommendations, including that DHS finalize a delegation of authority defining PLCY's roles and responsibilities and develop corresponding processes and procedures. DHS did not concur with a recommendation to apply the DHS Workforce Planning Guide to identify and communicate workforce needs. GAO believes this recommendation is valid as discussed in the report."
+    ],
+    "max_new_tokens": 512
+  },
+  {
+    "dataset": "gov_report",
+    "sample_id": "caf5073d724df260e53ec2cab2e8cc627e97c0f93798cdba",
+    "source_index": 16,
+    "input_sha256": "0295e35aed234fd2a7bcf1057388f5f0a7772243ae6597cad56ade2a8979d095",
+    "prompt_tokens_before_truncation": 5261,
+    "prompt_tokens": 5271,
+    "truncated": false,
+    "answers": [
+      "FEMA's IA program provides help to individuals to meet their immediate needs after a disaster, such as shelter and medical expenses. When a state, U.S. territory, or tribe requests IA assistance through a federal disaster declaration, FEMA evaluates the request against regulatory factors, such as concentration of damages, and provides a recommendation to the President, who makes a final declaration decision. GAO was asked to review FEMA's IA declaration process. This report examines (1) the number of IA declaration requests received, declared, and denied, and IA actual obligations from calendar years 2008 through 2016, (2) the extent to which FEMA accounts for the regulatory factors when evaluating IA requests, and (3) any challenges FEMA regions and select states reported on the declaration process and factors and any FEMA actions to revise them. GAO reviewed FEMA's policies, IA declaration requests and obligation data, and FEMA's RVARs from July 2012 through December 2016, the most recent years for which data were available. GAO also reviewed proposed rulemaking comments and interviewed FEMA officials from all 10 regions and 11 state emergency management offices selected based on declaration requests and other factors. From calendar years 2008 through 2016, the Department of Homeland Security's (DHS) Federal Emergency and Management Agency (FEMA) received 294 Individual Assistance (IA) declaration requests from states, U.S. territories, and tribes to help individuals meet their immediate needs after a disaster. Of these, the President declared 168 and denied 126 requests. Across the various types of IA declaration requests, severe storms (190) were the most common disaster type and drought (1) was among the least common. FEMA obligated about $8.6 billion in IA for disaster declarations during this period. GAO found that FEMA regions did not consistently obtain and document information on all elements of established IA regulatory factors when making IA recommendations to headquarters. Following a declaration request, a FEMA region is to prepare a Regional Administrator's Validation and Recommendation (RVAR)—a document designed to include data on each of the six IA regulatory factors for each declaration request as well as the regional administrator's recommendation. GAO reviewed all 81 RVARs from July 2012—the date FEMA began using the new RVAR template—through December 2016. GAO found that regions did not consistently obtain and document information for the elements required under the six regulatory factors (see table). For example, only 44 of the 81 RVARs documented all elements under the concentration of damage factor. By evaluating why regions are not completing all elements of each current IA regulatory factor, FEMA could identify whether any corrective steps are needed. Officials from the 10 FEMA regions and 11 states GAO interviewed, reported positive relationships with each other, but also cited various challenges with the IA declaration process and regulatory factors. For example, these officials told GAO that there are no established minimum thresholds for IA, making final determinations more subjective and the rationale behind denials unclear. However, as required by the Sandy Recovery Improvement Act of 2013, FEMA has taken steps to revise the IA factors by issuing a notice of proposed rulemaking. According to FEMA, the proposed rule aims to provide more objective criteria, clarify the threshold for eligibility, and speed up the IA declaration process. As of April 2018, the proposed rule was still under consideration. According to FEMA officials, they plan to finalize the rule in late 2018; therefore, it is too early to know the extent to which it will address these challenges. GAO recommends that FEMA evaluate why regions are not completing the RVARs for each element of the current IA regulatory factors and take corrective steps, if necessary. DHS concurred with the recommendation."
+    ],
+    "max_new_tokens": 512
+  },
+  {
+    "dataset": "gov_report",
+    "sample_id": "7decb8feac7c313ba51e5813869dc0723e029c13c3a6aed1",
+    "source_index": 17,
+    "input_sha256": "d8ef37e3249421366c3baff5da4586d567b3e92989de47d63e3ab562edc8336f",
+    "prompt_tokens_before_truncation": 10479,
+    "prompt_tokens": 10489,
+    "truncated": false,
+    "answers": [
+      "The Forest Service, an agency within USDA, performs a variety of tasks as steward of 193 million acres of public forests and grasslands. Its budget execution process for carrying out its mission includes (1) allotments, which are authorizations by an agency to incur obligations within a specified amount, and (2) unliquidated obligations, which represent budgetary resources that have been committed but not yet paid. Deobligation refers to an agency's cancellation or downward adjustments of previously incurred obligations, which may result in funds that may be available for reobligation. GAO was asked to review the Forest Service's internal controls over its budget execution processes. This report examines the extent to which the Forest Service properly designed control activities over (1) allotments of budgetary resources, its system for administrative control of funds, and any fund transfers between Forest Service appropriations; (2) reimbursables and related collections; and (3) review and certification of unliquidated obligations. GAO reviewed the Forest Service's policies, procedures, and other documentation and interviewed agency officials. In fiscal years 2015 and 2016, the Forest Service received discretionary no-year appropriations of $5.1 billion and $5.7 billion, respectively. It is critical for the Forest Service to manage its budgetary resources efficiently and effectively. While the Forest Service had processes over certain of its budget execution activities, GAO found the following internal control deficiencies: Budgetary resources . The purpose statute requires that amounts designated in appropriations acts for specific purposes are used as designated. The Forest Service did not have an adequate process and related control activities to reasonably assure that amounts were used as designated. In fiscal year 2017, GAO issued a legal opinion that the Forest Service had failed to comply with the purpose statute with regard to a $65 million line-item appropriation specifically provided for the purpose of acquiring aircraft for the next-generation airtanker fleet. Further, the Forest Service lacked a process and related control activities to reasonably assure that unobligated no-year appropriation balances from prior years were reviewed for their continuing need; did not have a properly designed system for administrative control of funds, which keeps obligations and expenditures from exceeding limits authorized by law; and had not properly designed control activities for fund transfers to its Wildland Fire Management program. These deficiencies increase the risk that the Forest Service may make budget requests in excess of its needs. Reimbursable agreements . To carry out its mission, the Forest Service enters into reimbursable agreements with agencies within the U.S. Department of Agriculture (USDA), other federal agencies, state and local government agencies, and nongovernment entities. The Forest Service (1) did not have adequately described processes and related control activities in manuals and handbooks for its reimbursable agreement processes and (2) lacked control activities related to segregating incompatible duties performed by line officers and program managers. For example, line officers may be responsible for initiating cost sharing agreements, modifying cost settlement packages, and changing or canceling the related receivable, which represent incompatible duties. As a result, programs and resources may not be protected from waste, fraud, and mismanagement. Unliquidated obligations . The Forest Service's processes and control activities over the review and certification of unliquidated obligations were not properly designed to reasonably assure the best use of funds and that unliquidated obligations would be efficiently and effectively deobligated and made available for other program needs. Further, the current process, as designed, was inconsistent with USDA and Forest Service policy. In addition, the Forest Service's manuals and handbooks, which provide directives for the areas that GAO reviewed, had not been reviewed by management in accordance with the Forest Service's 5-year review policy. Further, standard operating procedures and desk guides prepared by staff to supplement the manuals and handbooks were not issued as directives and therefore were not considered official policy. This increases the risk that control activities may not be consistently performed across the agency. GAO is making 11 recommendations to improve processes and related internal control activities over the management of the Forest Service's budgetary resources, reimbursable receivables and collections, and its process for reviewing unliquidated obligations. The Forest Service generally agreed with the report and stated that it has made significant progress to address the report findings."
+    ],
+    "max_new_tokens": 512
+  },
+  {
+    "dataset": "gov_report",
+    "sample_id": "df430577a7eaa9e6745391a4fe8c576cac1cad10fde42515",
+    "source_index": 18,
+    "input_sha256": "640c829b071573fec4eaf003a999e59ebbc63e5d759f9d91666c71560f6fdd7e",
+    "prompt_tokens_before_truncation": 6576,
+    "prompt_tokens": 6586,
+    "truncated": false,
+    "answers": [
+      "Article II, Section 2, of the Constitution provides that the President shall appoint officers of the United States \"by and with the Advice and Consent of the Senate.\" This report describes the process by which the Senate provides advice and consent on presidential nominations, including receipt and referral of nominations, committee practices, and floor procedure. Committees play the central role in the process through investigations and hearings. Senate Rule XXXI provides that nominations shall be referred to appropriate committees \"unless otherwise ordered.\" Most nominations are referred, although a Senate standing order provides that some \"privileged\" nominations to specified positions will not be referred unless requested by a Senator. The Senate rule concerning committee jurisdictions (Rule XXV) broadly defines issue areas for committees, and the same jurisdictional statements generally apply to nominations as well as legislation. A committee often gathers information about a nominee either before or instead of a formal hearing. A committee considering a nomination has four options. It can report the nomination to the Senate favorably, unfavorably, or without recommendation, or it can choose to take no action. It is more common for a committee to take no action on a nomination than to reject a nominee outright. The Senate handles executive business, which includes both nominations and treaties, separately from its legislative business. All nominations reported from committee are listed on the Executive Calendar, a separate document from the Calendar of Business, which lists pending bills and resolutions. Generally speaking, the majority leader schedules floor consideration of nominations on the Calendar. Nominations are considered in \"executive session,\" a parliamentary form of the Senate in session that has its own journal and, to some extent, its own rules of procedure. The Senate can call up a nomination expeditiously, because a motion to enter executive session to consider a specific nomination on the Calendar is not debatable. This motion requires a majority of Senators present and voting, a quorum being present, for approval. After a nomination has been called up, the question before the Senate is \"will the Senate advise and consent to this nomination?\" A majority of Senators voting is required to approve a nomination. However, Senate rules place no limit on how long a nomination may be debated, and ending consideration could require invoking cloture. On April 6, 2017, the Senate reinterpreted Rule XXII in order to allow cloture to be invoked on nominations to the Supreme Court by a majority of Senators voting. This expanded the results of similar actions taken by the Senate in November 2013, which changed the cloture vote requirement to a majority for nominations other than to the Supreme Court. After the 2013 decision, the number of nominations subjected to a cloture process increased. On April 3, 2019, the Senate reinterpreted Rule XXII again. The Senate reduced, from 30 hours to 2 hours, the maximum time nominations can be considered after cloture has been invoked. This change applied to all executive branch nominations except to high-level positions such as heads of departments, and it applied to all judicial nominations except to the Supreme Court and the U.S. Circuit Court of Appeals. The full impact of this change is difficult to assess at this time, but it is likely to shorten the time between a cloture vote and a vote on the nomination. If Senators respond as they did to the last reinterpretation of the cloture rule, it might also increase the number of nominations subjected to a cloture process. Nominations that are pending when the Senate adjourns sine die at the end of a session or recesses for more than 30 days are returned to the President unless the Senate, by unanimous consent, waives the rule requiring their return (Senate Rule XXXI, clause 6). If a nomination is returned, and the President still desires Senate consideration, he must submit a new nomination."
+    ],
+    "max_new_tokens": 512
+  },
+  {
+    "dataset": "triviaqa",
+    "sample_id": "c6270c6ae570ce9459e98f4c704e3d86d510a755f6ce5443",
+    "source_index": 0,
+    "input_sha256": "d91eae735bcb597cbe28dfba4b4adbf5ed1c85f77e01f336b8e2328fc7b86092",
+    "prompt_tokens_before_truncation": 5507,
+    "prompt_tokens": 5507,
+    "truncated": false,
+    "answers": [
+      "The United States of America",
+      "United States Of Amerca",
+      "Us of a",
+      "U.–S.–A.",
+      "Americaland",
+      "United States (U.S.A.)",
+      "Amurika",
+      "Unite states of america",
+      "United States of America (redirect)",
+      "The U S A",
+      "Unietd States",
+      "EE UU",
+      "The U.S.A.",
+      "U.-S.-A.",
+      "Usa",
+      "United Staets of America",
+      "Unites States",
+      "États-Unis d'Amérique",
+      "Verenigde State",
+      "U.–S.",
+      "The United States of America.",
+      "The U-S-A",
+      "EEUU",
+      "U. S. A.",
+      "Nagkaisang mga Estado",
+      "The U. S. of America",
+      "The USA",
+      "America (United States)",
+      "The U. S. A.",
+      "U S of America",
+      "UNITED STATES",
+      "Estados Unidos",
+      "The U–S",
+      "American United States",
+      "US and A",
+      "Unitd states",
+      "The US of A",
+      "EE.UU.",
+      "U-S",
+      "The U-S",
+      "Etymology of the United States",
+      "U.S.A.)",
+      "EE. UU.",
+      "United states of america",
+      "US of america",
+      "Verenigde State van Amerika",
+      "Nited States",
+      "United-States",
+      "Unite States",
+      "Estados Unidos de América",
+      "UnitedStates",
+      "Estaos Unios",
+      "US of America",
+      "The Usa",
+      "United states of America",
+      "Untied States of America",
+      "The U S of America",
+      "THE AMERICAN UNITED STATES",
+      "The United-States",
+      "U S A",
+      "AmericA",
+      "Estados Unidos de America",
+      "United states",
+      "The U.S. of America",
+      "Amerka",
+      "United–States",
+      "U.s.a.",
+      "United States of America",
+      "United State of America",
+      "United States (US)",
+      "The U.S. of A",
+      "America",
+      "Amercia",
+      "Stati Uniti d'America",
+      "Los Estados Unidos de America",
+      "United Stated",
+      "U.S.",
+      "United States (of America)",
+      "United States",
+      "States of America",
+      "America-class",
+      "Los Estados Unidos",
+      "U,S,",
+      "United States (country)",
+      "Federal United States",
+      "ISO 3166-1:US",
+      "Untied States",
+      "The U.–S.–A.",
+      "VS America",
+      "Amurica",
+      "Etats-Unis d'Amerique",
+      "US",
+      "U.S. OF A",
+      "USofA",
+      "Etats-Unis",
+      "U.S. of A",
+      "United States of America (U.S.A.)",
+      "Amarica",
+      "The United States",
+      "U-S-A",
+      "United States/Introduction",
+      "The Us",
+      "Unitesd states",
+      "The U S of A",
+      "America class",
+      "America magazine",
+      "الولايات المتحدة الأمريكية",
+      "The U. S. of A",
+      "U S",
+      "(USA)",
+      "The United–States",
+      "United States (U.S.)",
+      "U.-S.",
+      "United States of America (USA)",
+      "'merica",
+      "The US",
+      "United States of America.",
+      "UNited States",
+      "The U.S.",
+      "AMERICA",
+      "United States of America/OldPage",
+      "United+States",
+      "The U S",
+      "United Sates",
+      "THE UNITED STATES OF AMERICA",
+      "U–S–A",
+      "United States Of America",
+      "U.S. of America",
+      "U–S",
+      "Los Estados Unidos de América",
+      "The U.-S.",
+      "United sates",
+      "The United States Of America",
+      "America (country)",
+      "United States of American",
+      "United state of america",
+      "The U.–S.",
+      "Amurka",
+      "U. S. of A",
+      "The U. S.",
+      "United States America",
+      "US of A",
+      "États-Unis",
+      "USoA",
+      "USA",
+      "Estaos Uníos",
+      "America, United States of",
+      "U. S. of America",
+      "U.S.American",
+      "(US)",
+      "The U–S–A",
+      "U. S.",
+      "U.S. America",
+      "U.S. A",
+      "Yankee land",
+      "America (US)",
+      "U.S",
+      "America (United States of)",
+      "US (country)",
+      "UNITED STATES OF AMERICA",
+      "U.S.A",
+      "Estados unidos",
+      "Americia",
+      "The US of america",
+      "Vereinigte Staaten",
+      "US America",
+      "These United States of America",
+      "VS Amerika",
+      "Name of the United States",
+      "The united states of america",
+      "Estatos Unitos",
+      "America (USA)",
+      "The U.-S.-A.",
+      "United States of America/Introduction",
+      "The US of America",
+      "Americophile",
+      "V.S. America",
+      "U.S.A.",
+      "U S of A",
+      "V.S. Amerika",
+      "United+States+of+America",
+      "The Unites States of America"
+    ],
+    "max_new_tokens": 32
+  },
+  {
+    "dataset": "triviaqa",
+    "sample_id": "bf1556b2b68228cd71538d898121398f8e47fbaa45c6f717",
+    "source_index": 1,
+    "input_sha256": "e38209d26a8287ff6a8a9ac3efa885cc126c8bdf786281e8d149db7ef4b69271",
+    "prompt_tokens_before_truncation": 16439,
+    "prompt_tokens": 16439,
+    "truncated": false,
+    "answers": [
+      "The Black Eyed Peas",
+      "Yesterday (The Black Eyed Peas song)",
+      "Black Eyed Peas",
+      "Instant def",
+      "The Black-Eyed Peas",
+      "The black eyed peas",
+      "Black Eyed Peas (band)",
+      "TBEP",
+      "Roots to Fruits",
+      "Black eyed peas (band)",
+      "Black-Eyed Peas",
+      "Black Eyed Peas, The",
+      "Black Eyed peas (group)",
+      "Black eyed pees",
+      "BLACK EYED PEAS",
+      "Black-eyed Peas",
+      "Yesterday (The Black Eyed Peas)",
+      "Black Eye Peas"
+    ],
+    "max_new_tokens": 32
+  },
+  {
+    "dataset": "triviaqa",
+    "sample_id": "1f4fecc3601c6f6fd6eb04d9996d67dc8c27b9eb4442fecb",
+    "source_index": 2,
+    "input_sha256": "888ec4968f072dd89caf88df347ec64272b5bcb831a31fa595edf14d6e0eb234",
+    "prompt_tokens_before_truncation": 13230,
+    "prompt_tokens": 13230,
+    "truncated": false,
+    "answers": [
+      "55",
+      "fifty-five"
+    ],
+    "max_new_tokens": 32
+  },
+  {
+    "dataset": "triviaqa",
+    "sample_id": "33982587b948364f83d707e5fc6a52e53de33b4d3e9338d3",
+    "source_index": 3,
+    "input_sha256": "1b45ff0020fff923781939abae7650e257c0c9ab05d537f976b2ff1b422da964",
+    "prompt_tokens_before_truncation": 20896,
+    "prompt_tokens": 20896,
+    "truncated": false,
+    "answers": [
+      "Vivaldi",
+      "A.Vivaldi",
+      "Antonio Lucio Vivaldi",
+      "The Red Priest",
+      "A. Vivaldi",
+      "Prete Rosso",
+      "Antonio Vivaldi",
+      "Il Prete Rosso"
+    ],
+    "max_new_tokens": 32
+  },
+  {
+    "dataset": "triviaqa",
+    "sample_id": "86e90fe5a621c287c115e2bdf061db16ce9e4d611ddfb297",
+    "source_index": 4,
+    "input_sha256": "740786591ef40240a93286a66f39b9e5139e719423a25aef1b1023eb7405e575",
+    "prompt_tokens_before_truncation": 11747,
+    "prompt_tokens": 11747,
+    "truncated": false,
+    "answers": [
+      "Dartmoor National Park",
+      "DARTMOOR",
+      "Dartmoor National park",
+      "Dartmoor",
+      "Okehayes Nursery",
+      "Dartymoor"
+    ],
+    "max_new_tokens": 32
+  },
+  {
+    "dataset": "triviaqa",
+    "sample_id": "27a3112482b43aa286477c3362da80a443743554f95cb79c",
+    "source_index": 5,
+    "input_sha256": "4c786283c125486e6d2bf26ff1358ac7f3170f5acfbbf99701e3c99d709a7dd1",
+    "prompt_tokens_before_truncation": 11582,
+    "prompt_tokens": 11582,
+    "truncated": false,
+    "answers": [
+      "Chazer",
+      "Piggeh",
+      "Sus (genus)",
+      "Pig",
+      "Pigs",
+      "🐷",
+      "🐖",
+      "🐽"
+    ],
+    "max_new_tokens": 32
+  },
+  {
+    "dataset": "triviaqa",
+    "sample_id": "e72d3db98c747a77e8daeaeadb198a6037059a23a1ea6160",
+    "source_index": 6,
+    "input_sha256": "3915e973548150dd5248bcb8b188c37a5abd2e501a441099218f69032a6ee4c5",
+    "prompt_tokens_before_truncation": 8071,
+    "prompt_tokens": 8071,
+    "truncated": false,
+    "answers": [
+      "Fonticulus",
+      "Fontanel",
+      "Soft spot",
+      "Fonticuli cranii",
+      "Fontanell",
+      "Fontanelle",
+      "Depressed fontanelle",
+      "Fontanelles",
+      "FONTANELLE",
+      "Soft spots",
+      "Fonticuli",
+      "Fontanels"
+    ],
+    "max_new_tokens": 32
+  },
+  {
+    "dataset": "triviaqa",
+    "sample_id": "f731ff7827b01ec4ccb1b190dd8d46f6ef6b5bee655422e3",
+    "source_index": 7,
+    "input_sha256": "56ffe1541bc974069b63f32e362c2e6cdbba5cd643c3ec1f01a33be587e3ba12",
+    "prompt_tokens_before_truncation": 3666,
+    "prompt_tokens": 3666,
+    "truncated": false,
+    "answers": [
+      "Berkshire, England",
+      "Highway, Berkshire",
+      "Royal Country of Berkshire",
+      "Berkshire",
+      "Royal Berkshire",
+      "County of Berkshire",
+      "Royal County of Berkshire",
+      "County of Berks"
+    ],
+    "max_new_tokens": 32
+  },
+  {
+    "dataset": "triviaqa",
+    "sample_id": "6b5bd779bedaab220f7b2fb9d9a0548a845ff0246ee5d79b",
+    "source_index": 8,
+    "input_sha256": "0d01a7d96a7cf43113e4eb2d6ede0cc8224f351be16efdee82997939e2f9e9d4",
+    "prompt_tokens_before_truncation": 4519,
+    "prompt_tokens": 4519,
+    "truncated": false,
+    "answers": [
+      "Alysian fields",
+      "Elysian Fields",
+      "Elysian Fields (disambiguation)",
+      "The Elysian Fields",
+      "Elysiane fields",
+      "Elysian fields"
+    ],
+    "max_new_tokens": 32
+  },
+  {
+    "dataset": "triviaqa",
+    "sample_id": "a76d6efca6c7f441949a1d0773716e73ca61720ddebe4444",
+    "source_index": 9,
+    "input_sha256": "b46a22ffd2488ba45a34c6d05f25876f420fa03c100d6c05107635c2bc5dceaa",
+    "prompt_tokens_before_truncation": 9526,
+    "prompt_tokens": 9526,
+    "truncated": false,
+    "answers": [
+      "Ben hur",
+      "Ben-Hur (film)",
+      "Ben hurr",
+      "Ben-hur",
+      "Ben-Hur (disambiguation)",
+      "Ben Hurr",
+      "Ben-Hur",
+      "Ben Hur"
+    ],
+    "max_new_tokens": 32
+  },
+  {
+    "dataset": "triviaqa",
+    "sample_id": "9a31f4259cf4c98795ce0ab127f1e57edeadcc02982ffdf8",
+    "source_index": 10,
+    "input_sha256": "502502209eb86a11cb8c1b582eef1cf0abe4cabc8ca7732993922f40059b3368",
+    "prompt_tokens_before_truncation": 20032,
+    "prompt_tokens": 20032,
+    "truncated": false,
+    "answers": [
+      "Crystal Gayle discography",
+      "Crystal Gayle",
+      "Crystal gale"
+    ],
+    "max_new_tokens": 32
+  },
+  {
+    "dataset": "triviaqa",
+    "sample_id": "b7fa31fa1320f5bbf5a51575708f2772053aa30fb3401bb9",
+    "source_index": 11,
+    "input_sha256": "24b5b37cfbad9b64a1bf101917f44df904e0d5fabdff4b8d9e476ef873ec8b5b",
+    "prompt_tokens_before_truncation": 10122,
+    "prompt_tokens": 10122,
+    "truncated": false,
+    "answers": [
+      "The End.",
+      "The End (television)",
+      "The End (book)",
+      "The End",
+      "The End (disambiguation)",
+      "The END",
+      "The End (album)",
+      "The End(album)",
+      "The End (Single)",
+      "The End (band)",
+      "The End (film)",
+      "The End (song)",
+      "The end"
+    ],
+    "max_new_tokens": 32
+  },
+  {
+    "dataset": "triviaqa",
+    "sample_id": "149c4c5390701fdbd5d652a6fa1890cab83ca1cd1d915301",
+    "source_index": 12,
+    "input_sha256": "85ce7368b8dd983c1e9ccda872f6beca5b4a1d2d9e3764240e08c6d39816972d",
+    "prompt_tokens_before_truncation": 4584,
+    "prompt_tokens": 4584,
+    "truncated": false,
+    "answers": [
+      "Nadine Elizabeth Louise Coyle",
+      "Outta My Mind",
+      "Nadine Coyle discography",
+      "NADINE COYLE",
+      "Girl On the Loose",
+      "Nadine Coyle"
+    ],
+    "max_new_tokens": 32
+  },
+  {
+    "dataset": "triviaqa",
+    "sample_id": "42b7163ca5fcda38a777f17176b4c409f9a58af228b841bf",
+    "source_index": 13,
+    "input_sha256": "176efdf95f7208598874a34eae550912ab45dff8425357640bfd8ef793a6de41",
+    "prompt_tokens_before_truncation": 12663,
+    "prompt_tokens": 12663,
+    "truncated": false,
+    "answers": [
+      "TL;DR",
+      "Tl;dr",
+      "Too long, didn't read",
+      "TL-DR",
+      "Too long; didn't read"
+    ],
+    "max_new_tokens": 32
+  },
+  {
+    "dataset": "triviaqa",
+    "sample_id": "891f0cad2cbfb5acc44b9c833ae07610e9d124b58d1cbcf8",
+    "source_index": 14,
+    "input_sha256": "4eac54c428b9c79d41f470d4bb6871cf55a18ed57b8393ae7d0babb63bd29dba",
+    "prompt_tokens_before_truncation": 4908,
+    "prompt_tokens": 4908,
+    "truncated": false,
+    "answers": [
+      "Smert' Shpionam",
+      "SMERSH",
+      "СМЕРШ",
+      "Smersh",
+      "NKVD Special Section"
+    ],
+    "max_new_tokens": 32
+  },
+  {
+    "dataset": "triviaqa",
+    "sample_id": "2ad896f5d818f0b4b4de7127fbbd66210484e842ce60aeba",
+    "source_index": 15,
+    "input_sha256": "afc2effee23b8f0fdf9ce478c5392e93d50cccbfdee8e90a21c2088b5d79690a",
+    "prompt_tokens_before_truncation": 5380,
+    "prompt_tokens": 5380,
+    "truncated": false,
+    "answers": [
+      "Baby Buggy",
+      "Baby buggy"
+    ],
+    "max_new_tokens": 32
+  },
+  {
+    "dataset": "triviaqa",
+    "sample_id": "69d1185dde79f9be8a11fe6d208b9307f91a3abaf6d92fc9",
+    "source_index": 16,
+    "input_sha256": "0b271e061f9c27ec9a0b23b35274fe9032e37b6283d2c6b9adf0655f281501c6",
+    "prompt_tokens_before_truncation": 17681,
+    "prompt_tokens": 17681,
+    "truncated": false,
+    "answers": [
+      "Brighthelmstone",
+      "UN/LOCODE:GBBSH",
+      "Brighton music",
+      "Brighton Ferry",
+      "Brighton, UK",
+      "Brighton, Sussex",
+      "Mayor of Brighton",
+      "Brighton, East Sussex",
+      "Brighton Borough Council",
+      "County Borough of Brighton",
+      "Brighton, England",
+      "Brighton"
+    ],
+    "max_new_tokens": 32
+  },
+  {
+    "dataset": "triviaqa",
+    "sample_id": "694e382df5496343d72c4dfb58082bba5c54d60533c343c4",
+    "source_index": 17,
+    "input_sha256": "4335baff114464fd389a2e54a9686838765f1039454d2a9863045bca58e68809",
+    "prompt_tokens_before_truncation": 2505,
+    "prompt_tokens": 2505,
+    "truncated": false,
+    "answers": [
+      "James bLUNT",
+      "James blunt",
+      "JAMES BLUNT",
+      "Blunty",
+      "James Blunt",
+      "James Hillier Blount",
+      "Blunt, James"
+    ],
+    "max_new_tokens": 32
+  },
+  {
+    "dataset": "triviaqa",
+    "sample_id": "c6cb57b58768f3f5c663a13d6c14ce7d8ab9f0b5d7ac0dce",
+    "source_index": 18,
+    "input_sha256": "4507a3090ea9335c980ac95e0ae5b5c0ba6eaa57af753034ee2941fbbac32f76",
+    "prompt_tokens_before_truncation": 16599,
+    "prompt_tokens": 16599,
+    "truncated": false,
+    "answers": [
+      "Court (volleyball)",
+      "Volley ball",
+      "Libero (volleyball)",
+      "Serve (Volleyball)",
+      "Spike (volleyball)",
+      "Vollyball",
+      "Spike (Volleyball)",
+      "Outside hitter",
+      "VolleyBall",
+      "Volleyball dig",
+      "Rally point system",
+      "Indoor volleyball",
+      "History of volleyball",
+      "Volleyball",
+      "🏐",
+      "V-ball",
+      "Lebro",
+      "High school volleyball",
+      "Volley-Ball",
+      "Volley Ball",
+      "Setter (Volleyball)",
+      "Mintonette",
+      "Volleyball court",
+      "VOLLEYBALL",
+      "Serve (volleyball)",
+      "Volleyball rules",
+      "Volley-ball"
+    ],
+    "max_new_tokens": 32
+  }
+]

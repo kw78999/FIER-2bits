@@ -34,6 +34,10 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--benchmark", choices=("pg19_ppl", "longbench_ppl"), default="pg19_ppl")
     parser.add_argument("--context-length", type=int, default=32768)
     parser.add_argument("--generate-tokens", type=int, default=128)
+    parser.add_argument(
+        "--token-prefixes", default=None,
+        help="Comma-separated decode prefixes summarized from one continuous run.",
+    )
     parser.add_argument("--num-blocks", type=int, default=1)
     parser.add_argument("--methods", default="fier,bit2_qk")
     parser.add_argument("--budget-sweep", default="1024,2048")
@@ -69,6 +73,15 @@ def parse_args() -> argparse.Namespace:
         "--measure-topk-recall",
         action=argparse.BooleanOptionalAction,
         default=True,
+    )
+    parser.add_argument(
+        "--measure-score-diagnostics",
+        action=argparse.BooleanOptionalAction,
+        default=False,
+        help=(
+            "Measure Q/K 2mean MAE, normalized MAE, and Spearman diagnostics. "
+            "Independent of top-k recall; adds substantial latency."
+        ),
     )
     parser.add_argument("--dtype", choices=("bfloat16", "float16", "float32"), default="bfloat16")
     parser.add_argument("--device-map", default="auto")
@@ -355,7 +368,7 @@ def continuous_ppl(decoder: LlamaSparseDecoder, blocks: list[torch.Tensor], vari
                 group_size = 0
 
             use_packed_cache = (
-                (method == "fier" and variant.retrieval.fier_backend == "reference")
+                (method == "fier")
                 or (method == "bit2_qk" and variant.retrieval.bit2_backend == "reference")
                 or (
                     method == "bit2_qk"
@@ -378,7 +391,10 @@ def continuous_ppl(decoder: LlamaSparseDecoder, blocks: list[torch.Tensor], vari
                 _sync(decoder.device)
                 prepack_ms = (time.perf_counter() - pack_started) * 1000.0
 
-            past = base_past
+            past = decoder.build_static_kv_cache(
+                base_past, reserve_tokens=generate_tokens
+            )
+            _sync(decoder.device)
             # One unmeasured decode removes Triton/CUDA JIT and allocator warm-up
             # from the reported search, attention, and end-to-end decode latency.
             decoder.decode(
@@ -393,6 +409,9 @@ def continuous_ppl(decoder: LlamaSparseDecoder, blocks: list[torch.Tensor], vari
             total_nll = 0.0
             total_decode_ms = 0.0
             total_search_ms = 0.0
+            total_score_ms = 0.0
+            total_topk_ms = 0.0
+            total_gather_ms = 0.0
             total_update_ms = 0.0
             total_attention_ms = 0.0
             total_ops = 0.0
@@ -426,6 +445,9 @@ def continuous_ppl(decoder: LlamaSparseDecoder, blocks: list[torch.Tensor], vari
                 total_nll += nll
                 total_decode_ms += decode_ms
                 total_search_ms += diagnostics.candidate_search_ms
+                total_score_ms += diagnostics.candidate_score_ms
+                total_topk_ms += diagnostics.candidate_topk_ms
+                total_gather_ms += diagnostics.selected_gather_ms
                 total_update_ms += update_ms
                 total_attention_ms += diagnostics.selected_attention_ms
                 total_ops += diagnostics.candidate_search_ops
@@ -448,10 +470,17 @@ def continuous_ppl(decoder: LlamaSparseDecoder, blocks: list[torch.Tensor], vari
                     "prepack_ms": prepack_ms,
                     "decode_ms": decode_ms,
                     "candidate_search_ms": diagnostics.candidate_search_ms,
+                    "candidate_score_ms": diagnostics.candidate_score_ms,
+                    "candidate_topk_ms": diagnostics.candidate_topk_ms,
+                    "selected_gather_ms": diagnostics.selected_gather_ms,
                     "cache_update_ms": update_ms,
                     "selected_attention_ms": diagnostics.selected_attention_ms,
                     "candidate_search_ops_proxy": diagnostics.candidate_search_ops,
                     "topk_recall": diagnostics.topk_recall,
+                    "topk_recall_1024": diagnostics.topk_recall_at(1024),
+                    "topk_recall_2048": diagnostics.topk_recall_at(2048),
+                    "topk_recall_3072": diagnostics.topk_recall_at(3072),
+                    "topk_recall_4096": diagnostics.topk_recall_at(4096),
                     "attention_mass_recall": diagnostics.attention_mass_recall,
                     "score_mae": diagnostics.score_mae,
                     "score_normalized_mae": diagnostics.score_normalized_mae,
@@ -467,6 +496,9 @@ def continuous_ppl(decoder: LlamaSparseDecoder, blocks: list[torch.Tensor], vari
                 f"block={block_idx} method={variant.label} mean_nll={mean_nll:.5f} "
                 f"ppl={_safe_perplexity(mean_nll):.3f} prepack_ms={prepack_ms:.1f} "
                 f"search_ms/tok={total_search_ms/generate_tokens:.1f} "
+                f"score_ms/tok={total_score_ms/generate_tokens:.1f} "
+                f"topk_ms/tok={total_topk_ms/generate_tokens:.1f} "
+                f"gather_ms/tok={total_gather_ms/generate_tokens:.1f} "
                 f"update_ms/tok={total_update_ms/generate_tokens:.3f} "
                 f"decode_ms/tok={total_decode_ms/generate_tokens:.1f} "
                 f"topk_recall={(recall_sum/recall_calls if recall_calls else float('nan')):.4f}",
@@ -485,6 +517,10 @@ def summarize_continuous(result: PPLResult) -> list[dict[str, Any]]:
         rs = [r for r in result.samples if r["method"] == method]
         mean_nll = sum(float(r["nll"]) for r in rs) / len(rs)
         recall_values = [float(r["topk_recall"]) for r in rs if r.get("topk_recall") is not None]
+        recall_by_k_values = {
+            k: [float(r[f"topk_recall_{k}"]) for r in rs if r.get(f"topk_recall_{k}") is not None]
+            for k in (1024, 2048, 3072, 4096)
+        }
         mass_values = [float(r["attention_mass_recall"]) for r in rs if r.get("attention_mass_recall") is not None]
         mae_values = [float(r["score_mae"]) for r in rs if r.get("score_mae") is not None]
         normalized_mae_values = [float(r["score_normalized_mae"]) for r in rs if r.get("score_normalized_mae") is not None]
@@ -498,10 +534,17 @@ def summarize_continuous(result: PPLResult) -> list[dict[str, Any]]:
             "mean_prepack_ms": sum(float(r["prepack_ms"]) for r in rs) / len(rs),
             "mean_decode_ms_per_token": sum(float(r["decode_ms"]) for r in rs) / len(rs),
             "mean_candidate_search_ms_per_token": sum(float(r["candidate_search_ms"]) for r in rs) / len(rs),
+            "mean_candidate_score_ms_per_token": sum(float(r["candidate_score_ms"]) for r in rs) / len(rs),
+            "mean_candidate_topk_ms_per_token": sum(float(r["candidate_topk_ms"]) for r in rs) / len(rs),
+            "mean_selected_gather_ms_per_token": sum(float(r["selected_gather_ms"]) for r in rs) / len(rs),
             "mean_cache_update_ms_per_token": sum(float(r["cache_update_ms"]) for r in rs) / len(rs),
             "mean_selected_attention_ms_per_token": sum(float(r["selected_attention_ms"]) for r in rs) / len(rs),
             "mean_candidate_search_ops_proxy": sum(float(r["candidate_search_ops_proxy"]) for r in rs) / len(rs),
             "mean_topk_recall": None if not recall_values else sum(recall_values) / len(recall_values),
+            "mean_topk_recall_1024": None if not recall_by_k_values[1024] else sum(recall_by_k_values[1024]) / len(recall_by_k_values[1024]),
+            "mean_topk_recall_2048": None if not recall_by_k_values[2048] else sum(recall_by_k_values[2048]) / len(recall_by_k_values[2048]),
+            "mean_topk_recall_3072": None if not recall_by_k_values[3072] else sum(recall_by_k_values[3072]) / len(recall_by_k_values[3072]),
+            "mean_topk_recall_4096": None if not recall_by_k_values[4096] else sum(recall_by_k_values[4096]) / len(recall_by_k_values[4096]),
             "mean_attention_mass_recall": None if not mass_values else sum(mass_values) / len(mass_values),
             "mean_score_mae": None if not mae_values else sum(mae_values) / len(mae_values),
             "mean_score_normalized_mae": None if not normalized_mae_values else sum(normalized_mae_values) / len(normalized_mae_values),
@@ -529,6 +572,18 @@ def write_outputs(output_dir: Path, result: PPLResult, metadata: dict[str, Any])
         with (output_dir / "summary.csv").open("w", newline="") as h:
             writer = csv.DictWriter(h, fieldnames=list(summary[0].keys()))
             writer.writeheader(); writer.writerows(summary)
+    for prefix in metadata.get("token_prefixes") or ():
+        prefix_result = PPLResult(samples=[
+            row for row in result.samples if int(row["step"]) < int(prefix)
+        ])
+        prefix_summary = summarize_continuous(prefix_result)
+        (output_dir / f"summary_{prefix}.json").write_text(
+            json.dumps(prefix_summary, indent=2, ensure_ascii=False) + "\n"
+        )
+        if prefix_summary:
+            with (output_dir / f"summary_{prefix}.csv").open("w", newline="") as h:
+                writer = csv.DictWriter(h, fieldnames=list(prefix_summary[0].keys()))
+                writer.writeheader(); writer.writerows(prefix_summary)
 
 
 def main() -> None:
@@ -564,6 +619,9 @@ def main() -> None:
     ):
         raise SystemExit(f"Invalid --bit2-backend-sweep: {bit2_backends}")
     full_layers = parse_int_tuple(args.full_layers)
+    token_prefixes = (
+        () if args.token_prefixes is None else parse_int_tuple(args.token_prefixes)
+    )
     if args.context_length < 2 or args.generate_tokens <= 0:
         raise SystemExit("context length and generate tokens must be positive")
     random.seed(args.seed); torch.manual_seed(args.seed)
@@ -577,6 +635,7 @@ def main() -> None:
         bit2_backend=bit2_backends[0],
         full_layers=full_layers,
         measure_topk_recall=args.measure_topk_recall,
+        measure_score_diagnostics=args.measure_score_diagnostics,
     )
     variants = make_variants(methods, retrieval, budgets, groups, bit2_backends)
     if args.dry_run:
@@ -601,12 +660,14 @@ def main() -> None:
         "model_id": args.model,
         "context_length": args.context_length,
         "generate_tokens": args.generate_tokens,
+        "token_prefixes": token_prefixes,
         "num_blocks": args.num_blocks,
         "methods": methods,
         "budget_sweep": budgets,
         "group_size_sweep": groups,
         "full_layers": full_layers,
         "measure_topk_recall": args.measure_topk_recall,
+        "measure_score_diagnostics": args.measure_score_diagnostics,
         "cache_policy": "persistent_2mean_cache_or_backend_specific",
         "full_baseline": "all_layers_full_attention_no_retrieval",
         "sparse_full_layers": full_layers,
@@ -642,6 +703,10 @@ def main() -> None:
             f"PPL={row['perplexity']:.4f} NLL={row['mean_nll']:.6f} "
             f"prepack_ms={row['mean_prepack_ms']:.1f} "
             f"search_ms/tok={row['mean_candidate_search_ms_per_token']:.1f} "
+            f"score_ms/tok={row['mean_candidate_score_ms_per_token']:.1f} "
+            f"topk_ms/tok={row['mean_candidate_topk_ms_per_token']:.1f} "
+            f"gather_ms/tok={row['mean_selected_gather_ms_per_token']:.1f} "
+            f"attention_ms/tok={row['mean_selected_attention_ms_per_token']:.1f} "
             f"update_ms/tok={row['mean_cache_update_ms_per_token']:.3f} "
             f"decode_ms/tok={row['mean_decode_ms_per_token']:.1f} "
             f"ops={row['mean_candidate_search_ops_proxy']/1e6:.2f}M "

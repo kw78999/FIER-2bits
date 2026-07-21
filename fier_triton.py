@@ -220,8 +220,10 @@ def score_packed_batched(
     if tokens <= 0 or tokens > int(packed.shape[2]) * 32:
         raise ValueError("tokens is inconsistent with packed key storage")
     expected_groups = math.ceil(tokens / group_size)
-    if int(mins.shape[1]) != expected_groups or int(mins.shape[2]) != head_dim:
-        raise ValueError("metadata shape is inconsistent with tokens/group_size")
+    if int(mins.shape[1]) < expected_groups or int(mins.shape[2]) != head_dim:
+        raise ValueError("metadata capacity is inconsistent with tokens/group_size")
+    storage_groups = int(mins.shape[1])
+    storage_words = int(packed.shape[2])
     if head_to_kv.numel() != q_heads:
         raise ValueError("head_to_kv must contain one entry per query head")
 
@@ -245,8 +247,8 @@ def score_packed_batched(
             tokens=tokens,
             q_heads=q_heads,
             head_dim=head_dim,
-            num_groups=expected_groups,
-            words=int(packed.shape[2]),
+            num_groups=storage_groups,
+            words=storage_words,
             group_size=group_size,
             BLOCK_D=block_d,
             BLOCK_T=block_t,
