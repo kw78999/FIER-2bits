@@ -1,2 +1,0 @@
-method,num_tokens,mean_nll,perplexity,mean_candidate_ratio,mean_prepack_ms,mean_decode_ms_per_token,mean_candidate_search_ms_per_token,mean_cache_update_ms_per_token,mean_selected_attention_ms_per_token,mean_candidate_search_ops_proxy,mean_topk_recall,mean_attention_mass_recall,mean_score_mae,mean_score_normalized_mae,mean_spearman_correlation,metadata_bytes_per_token,packed_k_bytes_per_token
-quest_b4096,128,2.832834497071204,16.99356082106357,0.06239449381723537,0.0,1111.4115322416183,722.7747285348669,28.99810459348373,173.01379267999437,0.0,,,,,,0,
